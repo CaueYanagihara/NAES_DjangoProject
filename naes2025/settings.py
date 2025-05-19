@@ -43,8 +43,8 @@ INSTALLED_APPS = [
     "protocolos.apps.ProtocolosConfig",
 
     # Outros complementos/apps
-    "crispy_forms",
-    "crispy_bootstrap5",
+    #"crispy_forms",
+    #"crispy_bootstrap5",
 
 ]
 
