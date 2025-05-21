@@ -1,0 +1,39 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Serviços</span>
+    </h1>
+    <a href="{% url 'cadastrar-servico' %}" class="btn btn-primary">+ Adicionar Serviço</a>
+</div>
+{% endblock header %}
+{% block conteudo %}
+<div>
+    <table class="table table-striped">
+        <tr>
+            <th>Categoria</th>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Preço</th>
+            <th>Duração (min)</th>
+            <th>Opções</th>
+        </tr>
+        {% for object in object_list %}
+        <tr>
+            <td>{{ object.categoria.nome }}</td>
+            <td>{{ object.nome }}</td>
+            <td>{{ object.descricao }}</td>
+            <td>R$ {{ object.preco }}</td>
+            <td>{{ object.duracaoMinutos }}</td>
+            <td>
+                <a href="{% url 'editar-servico' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a href="{% url 'excluir-servico' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">Nenhum serviço cadastrado.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock conteudo %}

@@ -1,0 +1,37 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Horários de Funcionamento</span>
+    </h1>
+    <a href="{% url 'cadastrar-horario-funcionamento' %}" class="btn btn-primary">+ Adicionar Horário</a>
+</div>
+{% endblock header %}
+{% block conteudo %}
+<div>
+    <table class="table table-striped">
+        <tr>
+            <th>Empresa</th>
+            <th>Dia da Semana</th>
+            <th>Hora Início</th>
+            <th>Hora Fim</th>
+            <th>Opções</th>
+        </tr>
+        {% for object in object_list %}
+        <tr>
+            <td>{{ object.empresa.nomeFantasia }}</td>
+            <td>{{ object.get_diaSemana_display }}</td>
+            <td>{{ object.horaInicio }}</td>
+            <td>{{ object.horaFim }}</td>
+            <td>
+                <a href="{% url 'editar-horario-funcionamento' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a href="{% url 'excluir-horario-funcionamento' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">Nenhum horário cadastrado.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock conteudo %}

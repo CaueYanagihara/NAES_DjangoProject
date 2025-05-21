@@ -1,52 +1,70 @@
 from django.urls import path
 
 # Importar suas views
-from .views import CampusCreate,CursoCreate,StatusCreate,TipoSolicitacaoCreate,ServidorCreate,AlunoCreate,SolicitacaoCreate,HistoricoCreate
-from .views import CampusUpdate, CursoUpdate, StatusUpdate, TipoSolicitacaoUpdate, ServidorUpdate, AlunoUpdate, SolicitacaoUpdate, HistoricoUpdate
-from .views import CampusDelete, CursoDelete, StatusDelete, TipoSolicitacaoDelete, ServidorDelete, AlunoDelete, SolicitacaoDelete, HistoricoDelete
-from .views import CampusList, CursoList, StatusList, TipoSolicitacaoList, ServidorList, AlunoList, SolicitacaoList, HistoricoList
+from .views import (
+    EmpresaCreate, EmpresaUpdate, EmpresaDelete, EmpresaList,
+    ClienteCreate, ClienteUpdate, ClienteDelete, ClienteList,
+    EnderecoCreate, EnderecoUpdate, EnderecoDelete, EnderecoList,
+    HorarioFuncionamentoCreate, HorarioFuncionamentoUpdate, HorarioFuncionamentoDelete, HorarioFuncionamentoList,
+    CategoriaServicoCreate, CategoriaServicoUpdate, CategoriaServicoDelete, CategoriaServicoList,
+    ServicoCreate, ServicoUpdate, ServicoDelete, ServicoList,
+    AtendenteCreate, AtendenteUpdate, AtendenteDelete, AtendenteList,
+    HorarioAtendimentoCreate, HorarioAtendimentoUpdate, HorarioAtendimentoDelete, HorarioAtendimentoList,
+    AgendamentoCreate, AgendamentoUpdate, AgendamentoDelete, AgendamentoList,
+)
 
 urlpatterns = [
+    # Empresa
+    path('empresa/cadastrar/', EmpresaCreate.as_view(), name='cadastrar-empresa'),
+    path('empresa/editar/<uuid:pk>/', EmpresaUpdate.as_view(), name='editar-empresa'),
+    path('empresa/excluir/<uuid:pk>/', EmpresaDelete.as_view(), name='excluir-empresa'),
+    path('empresa/listar/', EmpresaList.as_view(), name='listar-empresa'),
 
-    # CreateView ##########################################################
-    path("cadastrar/campus/", CampusCreate.as_view(), name="cadastrar-campus"),
-    path("cadastrar/curso/", CursoCreate.as_view(), name="cadastrar-curso"),
-    path("cadastrar/status/", StatusCreate.as_view(), name="cadastrar-status"),
-    path("cadastrar/tipo-solicitacao/", TipoSolicitacaoCreate.as_view(), name="cadastrar-tipo-solicitacao"),
-    path("cadastrar/servidor/", ServidorCreate.as_view(), name="cadastrar-servidor"),
-    path("cadastrar/aluno/", AlunoCreate.as_view(), name="cadastrar-aluno"),
-    path("cadastrar/solicitacao/", SolicitacaoCreate.as_view(), name="cadastrar-solicitacao"),
-    path("cadastrar/historico/", HistoricoCreate.as_view(), name="cadastrar-historico"),
+    # Cliente
+    path('cliente/cadastrar/', ClienteCreate.as_view(), name='cadastrar-cliente'),
+    path('cliente/editar/<uuid:pk>/', ClienteUpdate.as_view(), name='editar-cliente'),
+    path('cliente/excluir/<uuid:pk>/', ClienteDelete.as_view(), name='excluir-cliente'),
+    path('cliente/listar/', ClienteList.as_view(), name='listar-cliente'),
 
-    # UpdateView ##########################################################
-    path("editar/campus/<int:pk>/", CampusUpdate.as_view(), name="editar-campus"),
-    path("editar/curso/<int:pk>/", CursoUpdate.as_view(), name="editar-curso"),
-    path("editar/status/<int:pk>/", StatusUpdate.as_view(), name="editar-status"),
-    path("editar/tipo-solicitacao/<int:pk>/", TipoSolicitacaoUpdate.as_view(), name="editar-tipo-solicitacao"),
-    path("editar/servidor/<int:pk>/", ServidorUpdate.as_view(), name="editar-servidor"),
-    path("editar/aluno/<int:pk>/", AlunoUpdate.as_view(), name="editar-aluno"),
-    path("editar/solicitacao/<int:pk>/", SolicitacaoUpdate.as_view(), name="editar-solicitacao"),
-    # path("editar/historico/<int:pk>/", HistoricoUpdate.as_view(), name="editar-historico"),
+    # Endereco
+    path('endereco/cadastrar/', EnderecoCreate.as_view(), name='cadastrar-endereco'),
+    path('endereco/editar/<int:pk>/', EnderecoUpdate.as_view(), name='editar-endereco'),
+    path('endereco/excluir/<int:pk>/', EnderecoDelete.as_view(), name='excluir-endereco'),
+    path('endereco/listar/', EnderecoList.as_view(), name='listar-endereco'),
 
-    # DeleteView ##########################################################
-    path("excluir/campus/<int:pk>/", CampusDelete.as_view(), name="excluir-campus"),
-    path("excluir/curso/<int:pk>/", CursoDelete.as_view(), name="excluir-curso"),
-    path("excluir/status/<int:pk>/", StatusDelete.as_view(), name="excluir-status"),
-    path("excluir/tipo-solicitacao/<int:pk>/", TipoSolicitacaoDelete.as_view(), name="excluir-tipo-solicitacao"),
-    path("excluir/servidor/<int:pk>/", ServidorDelete.as_view(), name="excluir-servidor"),
-    path("excluir/aluno/<int:pk>/", AlunoDelete.as_view(), name="excluir-aluno"),
-    path("excluir/solicitacao/<int:pk>/", SolicitacaoDelete.as_view(), name="excluir-solicitacao"),
-    path("excluir/historico/<int:pk>/", HistoricoDelete.as_view(), name="excluir-historico"),
+    # HorarioFuncionamento
+    path('horario-funcionamento/cadastrar/', HorarioFuncionamentoCreate.as_view(), name='cadastrar-horario-funcionamento'),
+    path('horario-funcionamento/editar/<int:pk>/', HorarioFuncionamentoUpdate.as_view(), name='editar-horario-funcionamento'),
+    path('horario-funcionamento/excluir/<int:pk>/', HorarioFuncionamentoDelete.as_view(), name='excluir-horario-funcionamento'),
+    path('horario-funcionamento/listar/', HorarioFuncionamentoList.as_view(), name='listar-horario-funcionamento'),
 
-    # ListView ##########################################################
-    path("listar/campi/", CampusList.as_view(), name="listar-campus"),
-    path("listar/cursos/", CursoList.as_view(), name="listar-curso"),
-    path("listar/status/", StatusList.as_view(), name="listar-status"),
-    path("listar/tipos-de-solicitacao/", TipoSolicitacaoList.as_view(), name="listar-tipo-solicitacao"),
-    path("listar/servidores/", ServidorList.as_view(), name="listar-servidor"),
-    path("listar/alunos/", AlunoList.as_view(), name="listar-aluno"),
-    path("listar/solicitacoes/", SolicitacaoList.as_view(), name="listar-solicitacao"),
-    path("listar/historicos/", HistoricoList.as_view(), name="listar-historico"),
+    # CategoriaServico
+    path('categoria-servico/cadastrar/', CategoriaServicoCreate.as_view(), name='cadastrar-categoria-servico'),
+    path('categoria-servico/editar/<uuid:pk>/', CategoriaServicoUpdate.as_view(), name='editar-categoria-servico'),
+    path('categoria-servico/excluir/<uuid:pk>/', CategoriaServicoDelete.as_view(), name='excluir-categoria-servico'),
+    path('categoria-servico/listar/', CategoriaServicoList.as_view(), name='listar-categoria-servico'),
 
+    # Servico
+    path('servico/cadastrar/', ServicoCreate.as_view(), name='cadastrar-servico'),
+    path('servico/editar/<uuid:pk>/', ServicoUpdate.as_view(), name='editar-servico'),
+    path('servico/excluir/<uuid:pk>/', ServicoDelete.as_view(), name='excluir-servico'),
+    path('servico/listar/', ServicoList.as_view(), name='listar-servico'),
 
+    # Atendente
+    path('atendente/cadastrar/', AtendenteCreate.as_view(), name='cadastrar-atendente'),
+    path('atendente/editar/<uuid:pk>/', AtendenteUpdate.as_view(), name='editar-atendente'),
+    path('atendente/excluir/<uuid:pk>/', AtendenteDelete.as_view(), name='excluir-atendente'),
+    path('atendente/listar/', AtendenteList.as_view(), name='listar-atendente'),
+
+    # HorarioAtendimento
+    path('horario-atendimento/cadastrar/', HorarioAtendimentoCreate.as_view(), name='cadastrar-horario-atendimento'),
+    path('horario-atendimento/editar/<int:pk>/', HorarioAtendimentoUpdate.as_view(), name='editar-horario-atendimento'),
+    path('horario-atendimento/excluir/<int:pk>/', HorarioAtendimentoDelete.as_view(), name='excluir-horario-atendimento'),
+    path('horario-atendimento/listar/', HorarioAtendimentoList.as_view(), name='listar-horario-atendimento'),
+
+    # Agendamento
+    path('agendamento/cadastrar/', AgendamentoCreate.as_view(), name='cadastrar-agendamento'),
+    path('agendamento/editar/<uuid:pk>/', AgendamentoUpdate.as_view(), name='editar-agendamento'),
+    path('agendamento/excluir/<uuid:pk>/', AgendamentoDelete.as_view(), name='excluir-agendamento'),
+    path('agendamento/listar/', AgendamentoList.as_view(), name='listar-agendamento'),
 ]

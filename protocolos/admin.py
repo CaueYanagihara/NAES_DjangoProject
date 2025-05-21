@@ -1,14 +1,14 @@
 from django.contrib import admin
-from .models import Solicitacao, Status, TipoSolicitacao, Historico
-from .models import Aluno, Servidor, Campus, Curso
+from .models import Empresa, Cliente, Endereco, HorarioFuncionamento, CategoriaServico, Servico, Atendente, HorarioAtendimento, Agendamento
 
 # Register your models here.
-admin.site.register(Solicitacao)
-admin.site.register(Status)
-admin.site.register(TipoSolicitacao)
-admin.site.register(Historico)
-admin.site.register(Aluno)
-admin.site.register(Servidor)
-admin.site.register(Campus)
-admin.site.register(Curso)
+admin.site.register(Empresa)
+admin.site.register(Cliente)
+admin.site.register(Endereco)
+admin.site.register(HorarioFuncionamento)
+admin.site.register(CategoriaServico)
+admin.site.register(Servico)
+admin.site.register(Atendente)
+admin.site.register(HorarioAtendimento)
+admin.site.register(Agendamento)
 

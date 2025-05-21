@@ -1,0 +1,41 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Endereços</span>
+    </h1>
+    <a href="{% url 'cadastrar-endereco' %}" class="btn btn-primary">+ Adicionar Endereço</a>
+</div>
+{% endblock header %}
+{% block conteudo %}
+<div>
+    <table class="table table-striped">
+        <tr>
+            <th>Rua</th>
+            <th>Número</th>
+            <th>Bairro</th>
+            <th>Cidade</th>
+            <th>Estado</th>
+            <th>CEP</th>
+            <th>Opções</th>
+        </tr>
+        {% for object in object_list %}
+        <tr>
+            <td>{{ object.rua }}</td>
+            <td>{{ object.numero }}</td>
+            <td>{{ object.bairro }}</td>
+            <td>{{ object.cidade }}</td>
+            <td>{{ object.estado }}</td>
+            <td>{{ object.cep }}</td>
+            <td>
+                <a href="{% url 'editar-endereco' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a href="{% url 'excluir-endereco' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">Nenhum endereço cadastrado.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock conteudo %}

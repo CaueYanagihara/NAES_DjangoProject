@@ -1,0 +1,43 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Agendamentos</span>
+    </h1>
+    <a href="{% url 'cadastrar-agendamento' %}" class="btn btn-primary">+ Novo Agendamento</a>
+</div>
+{% endblock header %}
+{% block conteudo %}
+<div>
+    <table class="table table-striped">
+        <tr>
+            <th>Cliente</th>
+            <th>Empresa</th>
+            <th>Serviço</th>
+            <th>Atendente</th>
+            <th>Início</th>
+            <th>Fim</th>
+            <th>Status</th>
+            <th>Opções</th>
+        </tr>
+        {% for object in object_list %}
+        <tr>
+            <td>{{ object.cliente.nome }}</td>
+            <td>{{ object.empresa.nomeFantasia }}</td>
+            <td>{{ object.servico.nome }}</td>
+            <td>{{ object.atendente.nome }}</td>
+            <td>{{ object.dataHoraInicio }}</td>
+            <td>{{ object.dataHoraFim }}</td>
+            <td>{{ object.get_status_display }}</td>
+            <td>
+                <a href="{% url 'editar-agendamento' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a href="{% url 'excluir-agendamento' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">Nenhum agendamento cadastrado.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock conteudo %}

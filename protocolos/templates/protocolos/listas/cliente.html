@@ -1,0 +1,39 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Clientes</span>
+    </h1>
+    <a href="{% url 'cadastrar-cliente' %}" class="btn btn-primary">+ Adicionar Cliente</a>
+</div>
+{% endblock header %}
+{% block conteudo %}
+<div>
+    <table class="table table-striped">
+        <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>Ativo</th>
+            <th>Opções</th>
+        </tr>
+        {% for object in object_list %}
+        <tr>
+            <td>{{ object.nome }}</td>
+            <td>{{ object.cpf }}</td>
+            <td>{{ object.email }}</td>
+            <td>{{ object.telefone }}</td>
+            <td>{{ object.ativo|yesno:"Sim,Não" }}</td>
+            <td>
+                <a href="{% url 'editar-cliente' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a href="{% url 'excluir-cliente' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">Nenhum cliente cadastrado.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock conteudo %}

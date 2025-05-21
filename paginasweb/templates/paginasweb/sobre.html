@@ -4,52 +4,42 @@
 
 {% block header %}
 <div class="text-center">
-    <div class="fs-3 fw-light text-muted">Conheça um pouco mais sobre o projeto</div>
-    <h1 class="display-3 fw-bolder mb-5"><span class="text-gradient d-inline">Sobre o projeto</span></h1>
+    <div class="fs-3 fw-light text-muted">Conheça um pouco mais sobre o Agende Fácil</div>
+    <h1 class="display-3 fw-bolder mb-5"><span class="text-gradient d-inline">Sobre o sistema</span></h1>
 </div>
 {% endblock header %}
 
-
 {% block conteudo %}
 
-<h2 class=" fw-bolder">
-    <span class="text-gradient d-inline">Descrição do projeto</span>
+<h2 class="fw-bolder">
+    <span class="text-gradient d-inline">Descrição do sistema</span>
 </h2>
-<p class="lead fw-light mb-4">Falar do objetivo e funcionalidades</p>
+<p class="lead fw-light mb-4">O Agende Fácil é um sistema online para agendamento de horários em serviços como salão de beleza, barbearia, estética e outros. O objetivo é facilitar a vida de clientes e empresas, permitindo marcar horários de forma rápida, prática e segura.</p>
 <p class="text-muted">
-    Aqui você vai descrever o seu software, considerando o objetivo geral e os objetivos específicos, podendo listá-los.
+    <strong>Objetivo geral:</strong> Oferecer uma plataforma intuitiva para agendamento de serviços, otimizando o tempo de clientes e profissionais.<br>
+    <strong>Objetivos específicos:</strong>
+    <ul>
+        <li>Permitir que clientes escolham o serviço, profissional e horário desejado.</li>
+        <li>Facilitar o gerenciamento de agenda para empresas e profissionais.</li>
+        <li>Enviar confirmações e lembretes automáticos de agendamento.</li>
+        <li>Oferecer informações detalhadas sobre serviços, preços e profissionais.</li>
+    </ul>
 </p>
 
-
-
 <h4 class="mt-5"><span class="text-gradient d-inline">Diagrama de Caso de Uso</span></h4>
-
 <div class="">
-    <p>Um <strong>Diagrama de Caso de Uso</strong> é uma ferramenta visual que descreve a funcionalidade de um sistema do ponto de vista do usuário (ou "ator"). Ele mostra:</p>
-    <ul>
-        <li><strong>Atores:</strong> Quem ou o quê interage com o sistema.</li>
-        <li><strong>Casos de Uso:</strong> As tarefas específicas que os atores podem realizar com o sistema.</li>
-        <li><strong>Relacionamentos:</strong> Como os casos de uso se relacionam entre si e com os atores (ex: inclusão, extensão, generalização).</li>
-    </ul>
-    <p>Em resumo, ele responde à pergunta: <strong>"O que o sistema faz?"</strong> e para quem. É útil para entender os requisitos do sistema e definir seu escopo.</p>
-</div>
-
-
-<h4 class="mt-5"><span class="text-gradient d-inline">Diagrama de Classes</span></h4>
-
-<div class="">
-    <p class="">Um <strong>Diagrama de Classes</strong> é um tipo de diagrama estrutural da UML (Linguagem Unificada de Modelagem) que descreve a estrutura estática de um sistema, mostrando suas classes, atributos, métodos e relacionamentos entre elas. Ele mostra:</p>
-    <ul>
-        <li><strong>Classes:</strong> Representam os objetos do sistema e seus dados.</li>
-        <li><strong>Atributos:</strong> As características dos objetos (ex: nome, idade).</li>
-        <li><strong>Métodos:</strong> As ações que os objetos podem realizar (ex: calcular, exibir).</li>
-        <li><strong>Relacionamentos:</strong> Como as classes se relacionam entre si (ex: associação, herança, agregação, composição).</li>
-    </ul>
-    <p>Em resumo, ele responde à pergunta: <strong>"Como o sistema é estruturado?"</strong>. É útil para modelar a arquitetura do software e facilitar a comunicação entre desenvolvedores.</p>
+    <p>O diagrama de caso de uso ilustra as principais interações dos usuários com o sistema, como agendar um serviço, visualizar agenda, cadastrar empresa, entre outros.</p>
     <p class="text-center bg-white p-4">
-        <img src="{% static "img/diagrama_classe.png" %}" alt="" class="img-fluid">
+        <img src="{% static 'img/diagrama_caso_uso.png' %}" alt="Diagrama de Caso de Uso" class="img-fluid">
     </p>
 </div>
 
+<h4 class="mt-5"><span class="text-gradient d-inline">Diagrama de Classes</span></h4>
+<div class="">
+    <p class="">O diagrama de classes mostra a estrutura do sistema, incluindo entidades como Cliente, Empresa, Serviço, Agendamento, Atendente, entre outras, e seus relacionamentos.</p>
+    <p class="text-center bg-white p-4">
+        <img src="{% static 'img/diagrama_classe.png' %}" alt="Diagrama de Classes" class="img-fluid">
+    </p>
+</div>
 
 {% endblock conteudo %}

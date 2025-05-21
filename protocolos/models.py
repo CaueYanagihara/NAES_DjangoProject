@@ -1,126 +1,113 @@
+import uuid
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
-# Create your models here.
+class TipoUsuario(models.TextChoices):
+    EMPRESA = 'EMPRESA', 'Empresa'
+    CLIENTE = 'CLIENTE', 'Cliente'
 
+class DiaSemana(models.IntegerChoices):
+    SEGUNDA = 1, 'Segunda-feira'
+    TERCA = 2, 'Terça-feira'
+    QUARTA = 3, 'Quarta-feira'
+    QUINTA = 4, 'Quinta-feira'
+    SEXTA = 5, 'Sexta-feira'
+    SABADO = 6, 'Sábado'
+    DOMINGO = 7, 'Domingo'
 
-class Campus(models.Model):
-    nome = models.CharField(max_length=120)
+class StatusAgendamento(models.TextChoices):
+    PENDENTE = 'PENDENTE', 'Pendente'
+    CONFIRMADO = 'CONFIRMADO', 'Confirmado'
+    CANCELADO = 'CANCELADO', 'Cancelado'
+    CONCLUIDO = 'CONCLUIDO', 'Concluído'
 
-    def __str__(self):
-        return self.nome
-    
-    class Meta:
-        ordering = ["nome"]
-        verbose_name_plural = "Campi"
+class UsuarioManager(BaseUserManager):
+    def create_user(self, email, nome, senha=None, **extra_fields):
+        if not email:
+            raise ValueError('O email é obrigatório')
+        email = self.normalize_email(email)
+        user = self.model(email=email, nome=nome, **extra_fields)
+        user.set_password(senha)
+        user.save(using=self._db)
+        return user
 
+    def create_superuser(self, email, nome, senha=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(email, nome, senha, **extra_fields)
 
-class Curso(models.Model):
-    nome = models.CharField(max_length=150)
-    campus = models.ForeignKey(Campus, on_delete=models.PROTECT)
-
-    def __str__(self):
-        return f'{self.nome} ({self.campus.nome})'
-    
-    class Meta:
-        ordering = ["nome"]
-
-
-class Status(models.Model):
-    nome = models.CharField(max_length=100)
-    ordem = models.PositiveIntegerField(unique=True)
-    pode_editar = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.nome
-
-    class Meta:
-        verbose_name_plural = "Status"
-        ordering = ["nome"]
-
-
-class TipoSolicitacao(models.Model):
-
-    descricao = models.CharField(max_length=100, verbose_name="descrição", unique=True)
-    prazo_externo = models.CharField(max_length=200)
-    prazo_externo_dias = models.PositiveSmallIntegerField(
-        help_text="Informe quantos dias úteis é o prazo de solicitação",
-        blank=True, default=0)
-    prazo_interno = models.CharField(max_length=200)
-    prazo_interno_dias = models.PositiveSmallIntegerField(
-        help_text="Informe quantos dias úteis para atendimento",
-        blank=True, default=0)
-
-    def __str__(self):
-        if(self.prazo_externo_dias > 0):
-            return f"{self.descricao} - Prazo: {self.prazo_externo_dias} dia(s)"
-        else:
-            return f"{self.descricao}"
-
-    class Meta:
-        verbose_name = "Tipo de Solicitação"
-        verbose_name_plural = "Tipos de Solicitação"
-        ordering = ["descricao"]
-
-
-class Aluno(models.Model):
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+class Cliente(AbstractBaseUser, PermissionsMixin):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nome = models.CharField(max_length=255)
-    matricula = models.CharField(max_length=50, unique=True)
-    cpf = models.CharField(max_length=14, unique=True) 
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=20)
+    tipo = models.CharField(max_length=10, choices=TipoUsuario.choices, default=TipoUsuario.CLIENTE)
+    ativo = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    cpf = models.CharField(max_length=14, unique=True)
 
-    def __str__(self):
-        return self.nome
-    
-    class Meta:
-        ordering = ["nome"]
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['nome']
 
+    objects = UsuarioManager()
 
-class Servidor(models.Model):
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
-    nome = models.CharField(max_length=255)
-    siape = models.CharField(max_length=50, unique=True)
+class Endereco(models.Model):
+    rua = models.CharField(max_length=255)
+    numero = models.CharField(max_length=20)
+    bairro = models.CharField(max_length=100)
+    cidade = models.CharField(max_length=100)
+    estado = models.CharField(max_length=2)
+    cep = models.CharField(max_length=10)
+
+class Empresa(models.Model):
+    user = models.OneToOneField(Cliente, on_delete=models.CASCADE, limit_choices_to={'tipo': TipoUsuario.EMPRESA}, related_name='empresa')
+    cnpj = models.CharField(max_length=18, unique=True)
+    nomeFantasia = models.CharField(max_length=255)
+    descricao = models.TextField(blank=True)
+    endereco = models.OneToOneField(Endereco, on_delete=models.CASCADE, related_name='empresa')
+    telefone = models.CharField(max_length=20)
     email = models.EmailField()
+    ativo = models.BooleanField(default=True)
 
-    def __str__(self):
-        return self.nome
-    
-    class Meta:
-        ordering = ["nome"]
-        verbose_name_plural = "Servidores"
+class HorarioFuncionamento(models.Model):
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='horarios_funcionamento')
+    diaSemana = models.IntegerField(choices=DiaSemana.choices)
+    horaInicio = models.TimeField()
+    horaFim = models.TimeField()
 
+class CategoriaServico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='categorias_servicos')
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True)
 
-class Solicitacao(models.Model):
-    solicitado_por = models.ForeignKey(Aluno, on_delete=models.CASCADE)
-    curso = models.ForeignKey(Curso, on_delete=models.PROTECT)
-    turma = models.CharField(max_length=30)
-    tipo_solicitacao = models.ForeignKey(TipoSolicitacao, on_delete=models.PROTECT)
-    justificativa = models.TextField()
-    anexo = models.FileField(upload_to='anexos_solicitacao/', blank=True, null=True)
-    solicitado_em = models.DateTimeField(auto_now_add=True)
-    atualizado_em = models.DateTimeField(auto_now=True)
+class Servico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    categoria = models.ForeignKey(CategoriaServico, on_delete=models.CASCADE, related_name='servicos')
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True)
+    preco = models.DecimalField(max_digits=8, decimal_places=2)
+    duracaoMinutos = models.PositiveIntegerField()
 
-    def __str__(self):
-        return f"{self.tipo_solicitacao} - {self.solicitado_em}"
+class Atendente(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='atendentes')
+    nome = models.CharField(max_length=255)
+    especialidades = models.ManyToManyField(Servico, related_name='atendentes')
 
-    class Meta:
-        verbose_name = "Solicitação"
-        verbose_name_plural = "Solicitações"
-        ordering = ["-solicitado_em"]
+class HorarioAtendimento(models.Model):
+    atendente = models.ForeignKey(Atendente, on_delete=models.CASCADE, related_name='disponibilidade')
+    diaSemana = models.IntegerField(choices=DiaSemana.choices)
+    horaInicio = models.TimeField()
+    horaFim = models.TimeField()
 
-
-class Historico(models.Model):
-    solicitacao = models.ForeignKey(Solicitacao, on_delete=models.CASCADE)
-    status = models.ForeignKey(Status, on_delete=models.PROTECT)
-    gerado_em = models.DateTimeField(auto_now_add=True)
-    gerado_por = models.ForeignKey(User, on_delete=models.PROTECT)
-
-    def __str__(self):
-        return f'{self.solicitacao} - {self.status.nome} em {self.gerado_em:%d/%m/%Y %H:%M}'
-    
-    class Meta:
-        verbose_name = "Histórico"
-        verbose_name_plural = "Históricos"
-        ordering = ["-gerado_em"]
+class Agendamento(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    dataHoraInicio = models.DateTimeField()
+    dataHoraFim = models.DateTimeField()
+    status = models.CharField(max_length=10, choices=StatusAgendamento.choices, default=StatusAgendamento.PENDENTE)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='agendamentos')
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='agendamentos')
+    servico = models.ForeignKey(Servico, on_delete=models.CASCADE, related_name='agendamentos')
+    atendente = models.ForeignKey(Atendente, on_delete=models.CASCADE, related_name='agendamentos')

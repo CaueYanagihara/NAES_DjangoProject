@@ -135,3 +135,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Formatação do CRispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+AUTH_USER_MODEL = "protocolos.Cliente"

@@ -1,301 +1,242 @@
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
-
 from django.urls import reverse_lazy
+from .models import (
+    Empresa, Cliente, Endereco, HorarioFuncionamento, CategoriaServico, Servico, Atendente, HorarioAtendimento, Agendamento
+)
 
-from .models import Campus, Curso, Status, TipoSolicitacao, Servidor, Aluno, Solicitacao, Historico
-
-# Create your views here.
-class CampusCreate(CreateView):
+# Empresa
+class EmpresaCreate(CreateView):
     template_name = "protocolos/form.html"
-    model = Campus
-    success_url = reverse_lazy("listar-campus")
-    fields = ["nome"]
-    extra_context = {
-        "titulo" : "Cadastro de Campus"
-    }        
+    model = Empresa
+    fields = ["nome", "email", "telefone", "tipo", "ativo", "cnpj", "nomeFantasia", "descricao", "endereco"]
+    success_url = reverse_lazy("listar-empresa")
+    extra_context = {"titulo": "Cadastro de Empresa"}
 
-
-class CursoCreate(CreateView):
+class EmpresaUpdate(UpdateView):
     template_name = "protocolos/form.html"
-    model = Curso
-    success_url = reverse_lazy("listar-curso")
-    fields = ["nome", "campus"]
-    extra_context = {
-        "titulo" : "Cadastro de Curso"
-    }
+    model = Empresa
+    fields = ["nome", "email", "telefone", "tipo", "ativo", "cnpj", "nomeFantasia", "descricao", "endereco"]
+    success_url = reverse_lazy("listar-empresa")
+    extra_context = {"titulo": "Atualizar Empresa"}
 
-
-class StatusCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Status
-    success_url = reverse_lazy("listar-status")
-    fields = ["nome", "ordem", "pode_editar"]
-    extra_context = {
-        "titulo" : "Cadastro de Status"
-    }
-
-
-class TipoSolicitacaoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = TipoSolicitacao
-    success_url = reverse_lazy("listar-tipo-solicitacao")
-    fields = [
-        "descricao",
-        "prazo_externo",
-        "prazo_externo_dias",
-        "prazo_interno",
-        "prazo_interno_dias",
-    ]
-    extra_context = {
-        "titulo": "Cadastro de Tipo de Solicitação"
-    }
-
-
-class ServidorCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Servidor
-    success_url = reverse_lazy("listar-servidor")
-    fields = ["nome", "siape", "email"]
-    extra_context = {
-        "titulo": "Cadastro de Servidor"
-    }
-
-
-class AlunoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Aluno
-    success_url = reverse_lazy("listar-aluno")
-    fields = ["nome", "matricula", "cpf", "email", "telefone"]
-    extra_context = {
-        "titulo": "Cadastro de Aluno"
-    }
-
-
-class SolicitacaoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Solicitacao
-    success_url = reverse_lazy("listar-solicitacao")
-    fields = ["solicitado_por", "curso", "turma", "tipo_solicitacao", "justificativa", "anexo"]
-    extra_context = {
-        "titulo": "Cadastro de Solicitação"
-    }
-
-
-class HistoricoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Historico
-    success_url = reverse_lazy("listar-historico")
-    fields = ["solicitacao", "status", "gerado_por"]
-    extra_context = {
-        "titulo": "Cadastro de Histórico"
-    }
-
-
-###############################################################
-
-
-class CampusUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Campus
-    success_url = reverse_lazy("listar-campus")
-    fields = ["nome"]
-    extra_context = {
-        "titulo" : "Atualizar dados do Campus"
-    } 
-
-
-class CursoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Curso
-    success_url = reverse_lazy("listar-curso")
-    fields = ["nome", "campus"]
-    extra_context = {
-        "titulo" : "Atualização de Curso"
-    }
-
-
-class StatusUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Status
-    success_url = reverse_lazy("listar-status")
-    fields = ["nome", "ordem", "pode_editar"]
-    extra_context = {
-        "titulo" : "Atualização de Status"
-    }
-
-
-class TipoSolicitacaoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = TipoSolicitacao
-    success_url = reverse_lazy("listar-tipo-solicitacao")
-    fields = [
-        "descricao",
-        "prazo_externo",
-        "prazo_externo_dias",
-        "prazo_interno",
-        "prazo_interno_dias",
-    ]
-    extra_context = {
-        "titulo": "Atualização de Tipo de Solicitação"
-    }
-
-
-class ServidorUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Servidor
-    success_url = reverse_lazy("listar-servidor")
-    fields = ["nome", "siape", "email"]
-    extra_context = {
-        "titulo": "Atualização de Servidor"
-    }
-
-
-class AlunoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Aluno
-    success_url = reverse_lazy("listar-aluno")
-    fields = ["nome", "matricula", "cpf", "email", "telefone"]
-    extra_context = {
-        "titulo": "Atualização de Aluno"
-    }
-
-
-class SolicitacaoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Solicitacao
-    success_url = reverse_lazy("listar-solicitacao")
-    fields = ["solicitado_por", "curso", "turma", "tipo_solicitacao", "justificativa", "anexo"]
-    extra_context = {
-        "titulo": "Atualização de Solicitação"
-    }
-
-
-class HistoricoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Historico
-    success_url = reverse_lazy("listar-historico")
-    fields = ["solicitacao", "status", "gerado_por"]
-    extra_context = {
-        "titulo": "Atualização de Histórico"
-    }
-
-
-###############################################################
-
-
-class CampusDelete(DeleteView):
+class EmpresaDelete(DeleteView):
     template_name = "protocolos/form-excluir.html"
-    model = Campus
-    success_url = reverse_lazy("listar-campus")
-    extra_context = {
-        "titulo" : "Excluir Campus",
-    }
+    model = Empresa
+    success_url = reverse_lazy("listar-empresa")
+    extra_context = {"titulo": "Excluir Empresa"}
 
+class EmpresaList(ListView):
+    template_name = "protocolos/listas/empresa.html"
+    model = Empresa
 
-class CursoDelete(DeleteView):
+# Cliente
+class ClienteCreate(CreateView):
+    template_name = "protocolos/form.html"
+    model = Cliente
+    fields = ["nome", "email", "telefone", "tipo", "ativo", "cpf", "password"]
+    success_url = reverse_lazy("listar-cliente")
+    extra_context = {"titulo": "Cadastro de Cliente"}
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        self.object.set_password(self.object.password)
+        self.object.save()
+        return response
+
+class ClienteUpdate(UpdateView):
+    template_name = "protocolos/form.html"
+    model = Cliente
+    fields = ["nome", "email", "telefone", "tipo", "ativo", "cpf", "password"]
+    success_url = reverse_lazy("listar-cliente")
+    extra_context = {"titulo": "Atualizar Cliente"}
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if form.cleaned_data.get('password'):
+            self.object.set_password(self.object.password)
+            self.object.save()
+        return response
+
+class ClienteDelete(DeleteView):
     template_name = "protocolos/form-excluir.html"
-    model = Curso
-    success_url = reverse_lazy("listar-curso")
-    extra_context = {
-        "titulo" : "Excluir Curso",
-    }
+    model = Cliente
+    success_url = reverse_lazy("listar-cliente")
+    extra_context = {"titulo": "Excluir Cliente"}
 
+class ClienteList(ListView):
+    template_name = "protocolos/listas/cliente.html"
+    model = Cliente
 
-class StatusDelete(DeleteView):
+# Endereco
+class EnderecoCreate(CreateView):
+    template_name = "protocolos/form.html"
+    model = Endereco
+    fields = ["rua", "numero", "bairro", "cidade", "estado", "cep"]
+    success_url = reverse_lazy("listar-endereco")
+    extra_context = {"titulo": "Cadastro de Endereço"}
+
+class EnderecoUpdate(UpdateView):
+    template_name = "protocolos/form.html"
+    model = Endereco
+    fields = ["rua", "numero", "bairro", "cidade", "estado", "cep"]
+    success_url = reverse_lazy("listar-endereco")
+    extra_context = {"titulo": "Atualizar Endereço"}
+
+class EnderecoDelete(DeleteView):
     template_name = "protocolos/form-excluir.html"
-    model = Status
-    success_url = reverse_lazy("listar-status")
-    extra_context = {
-        "titulo" : "Excluir Status",
-    }
+    model = Endereco
+    success_url = reverse_lazy("listar-endereco")
+    extra_context = {"titulo": "Excluir Endereço"}
 
+class EnderecoList(ListView):
+    template_name = "protocolos/listas/endereco.html"
+    model = Endereco
 
-class TipoSolicitacaoDelete(DeleteView):
+# HorarioFuncionamento
+class HorarioFuncionamentoCreate(CreateView):
+    template_name = "protocolos/form.html"
+    model = HorarioFuncionamento
+    fields = ["empresa", "diaSemana", "horaInicio", "horaFim"]
+    success_url = reverse_lazy("listar-horario-funcionamento")
+    extra_context = {"titulo": "Cadastro de Horário de Funcionamento"}
+
+class HorarioFuncionamentoUpdate(UpdateView):
+    template_name = "protocolos/form.html"
+    model = HorarioFuncionamento
+    fields = ["empresa", "diaSemana", "horaInicio", "horaFim"]
+    success_url = reverse_lazy("listar-horario-funcionamento")
+    extra_context = {"titulo": "Atualizar Horário de Funcionamento"}
+
+class HorarioFuncionamentoDelete(DeleteView):
     template_name = "protocolos/form-excluir.html"
-    model = TipoSolicitacao
-    success_url = reverse_lazy("listar-tipo-solicitacao")
-    extra_context = {
-        "titulo" : "Excluir Tipo de Solicitação",
-    }
+    model = HorarioFuncionamento
+    success_url = reverse_lazy("listar-horario-funcionamento")
+    extra_context = {"titulo": "Excluir Horário de Funcionamento"}
 
+class HorarioFuncionamentoList(ListView):
+    template_name = "protocolos/listas/horario_funcionamento.html"
+    model = HorarioFuncionamento
 
-class ServidorDelete(DeleteView):
+# CategoriaServico
+class CategoriaServicoCreate(CreateView):
+    template_name = "protocolos/form.html"
+    model = CategoriaServico
+    fields = ["empresa", "nome", "descricao"]
+    success_url = reverse_lazy("listar-categoria-servico")
+    extra_context = {"titulo": "Cadastro de Categoria de Serviço"}
+
+class CategoriaServicoUpdate(UpdateView):
+    template_name = "protocolos/form.html"
+    model = CategoriaServico
+    fields = ["empresa", "nome", "descricao"]
+    success_url = reverse_lazy("listar-categoria-servico")
+    extra_context = {"titulo": "Atualizar Categoria de Serviço"}
+
+class CategoriaServicoDelete(DeleteView):
     template_name = "protocolos/form-excluir.html"
-    model = Servidor
-    success_url = reverse_lazy("listar-servidor")
-    extra_context = {
-        "titulo" : "Excluir Servidor",
-    }
+    model = CategoriaServico
+    success_url = reverse_lazy("listar-categoria-servico")
+    extra_context = {"titulo": "Excluir Categoria de Serviço"}
 
+class CategoriaServicoList(ListView):
+    template_name = "protocolos/listas/categoria_servico.html"
+    model = CategoriaServico
 
-class AlunoDelete(DeleteView):
+# Servico
+class ServicoCreate(CreateView):
+    template_name = "protocolos/form.html"
+    model = Servico
+    fields = ["categoria", "nome", "descricao", "preco", "duracaoMinutos"]
+    success_url = reverse_lazy("listar-servico")
+    extra_context = {"titulo": "Cadastro de Serviço"}
+
+class ServicoUpdate(UpdateView):
+    template_name = "protocolos/form.html"
+    model = Servico
+    fields = ["categoria", "nome", "descricao", "preco", "duracaoMinutos"]
+    success_url = reverse_lazy("listar-servico")
+    extra_context = {"titulo": "Atualizar Serviço"}
+
+class ServicoDelete(DeleteView):
     template_name = "protocolos/form-excluir.html"
-    model = Aluno
-    success_url = reverse_lazy("listar-aluno")
-    extra_context = {
-        "titulo" : "Excluir Aluno",
-    }
+    model = Servico
+    success_url = reverse_lazy("listar-servico")
+    extra_context = {"titulo": "Excluir Serviço"}
 
+class ServicoList(ListView):
+    template_name = "protocolos/listas/servico.html"
+    model = Servico
 
-class SolicitacaoDelete(DeleteView):
+# Atendente
+class AtendenteCreate(CreateView):
+    template_name = "protocolos/form.html"
+    model = Atendente
+    fields = ["empresa", "nome", "especialidades"]
+    success_url = reverse_lazy("listar-atendente")
+    extra_context = {"titulo": "Cadastro de Atendente"}
+
+class AtendenteUpdate(UpdateView):
+    template_name = "protocolos/form.html"
+    model = Atendente
+    fields = ["empresa", "nome", "especialidades"]
+    success_url = reverse_lazy("listar-atendente")
+    extra_context = {"titulo": "Atualizar Atendente"}
+
+class AtendenteDelete(DeleteView):
     template_name = "protocolos/form-excluir.html"
-    model = Solicitacao
-    success_url = reverse_lazy("listar-solicitacao")
-    extra_context = {
-        "titulo" : "Excluir Solicitação",
-    }
+    model = Atendente
+    success_url = reverse_lazy("listar-atendente")
+    extra_context = {"titulo": "Excluir Atendente"}
 
+class AtendenteList(ListView):
+    template_name = "protocolos/listas/atendente.html"
+    model = Atendente
 
-class HistoricoDelete(DeleteView):
+# HorarioAtendimento
+class HorarioAtendimentoCreate(CreateView):
+    template_name = "protocolos/form.html"
+    model = HorarioAtendimento
+    fields = ["atendente", "diaSemana", "horaInicio", "horaFim"]
+    success_url = reverse_lazy("listar-horario-atendimento")
+    extra_context = {"titulo": "Cadastro de Horário de Atendimento"}
+
+class HorarioAtendimentoUpdate(UpdateView):
+    template_name = "protocolos/form.html"
+    model = HorarioAtendimento
+    fields = ["atendente", "diaSemana", "horaInicio", "horaFim"]
+    success_url = reverse_lazy("listar-horario-atendimento")
+    extra_context = {"titulo": "Atualizar Horário de Atendimento"}
+
+class HorarioAtendimentoDelete(DeleteView):
     template_name = "protocolos/form-excluir.html"
-    model = Historico
-    success_url = reverse_lazy("listar-historico")
-    extra_context = {
-        "titulo" : "Excluir Histórico",
-    }
+    model = HorarioAtendimento
+    success_url = reverse_lazy("listar-horario-atendimento")
+    extra_context = {"titulo": "Excluir Horário de Atendimento"}
 
+class HorarioAtendimentoList(ListView):
+    template_name = "protocolos/listas/horario_atendimento.html"
+    model = HorarioAtendimento
 
-###############################################################
+# Agendamento
+class AgendamentoCreate(CreateView):
+    template_name = "protocolos/form.html"
+    model = Agendamento
+    fields = ["dataHoraInicio", "dataHoraFim", "status", "cliente", "empresa", "servico", "atendente"]
+    success_url = reverse_lazy("listar-agendamento")
+    extra_context = {"titulo": "Cadastro de Agendamento"}
 
+class AgendamentoUpdate(UpdateView):
+    template_name = "protocolos/form.html"
+    model = Agendamento
+    fields = ["dataHoraInicio", "dataHoraFim", "status", "cliente", "empresa", "servico", "atendente"]
+    success_url = reverse_lazy("listar-agendamento")
+    extra_context = {"titulo": "Atualizar Agendamento"}
 
-class CampusList(ListView):
-    template_name = "protocolos/listas/campus.html"
-    model = Campus
+class AgendamentoDelete(DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = Agendamento
+    success_url = reverse_lazy("listar-agendamento")
+    extra_context = {"titulo": "Excluir Agendamento"}
 
-
-class CursoList(ListView):
-    template_name = "protocolos/listas/curso.html"
-    model = Curso
-    ordering = ["campus", "nome"]
-
-
-class StatusList(ListView):
-    template_name = "protocolos/listas/status.html"
-    model = Status
-    ordering = ["ordem"]
-
-
-class TipoSolicitacaoList(ListView):
-    template_name = "protocolos/listas/tipo-solicitacao.html"
-    model = TipoSolicitacao
-
-
-class ServidorList(ListView):
-    template_name = "protocolos/listas/servidor.html"
-    model = Servidor
-
-
-class AlunoList(ListView):
-    template_name = "protocolos/listas/aluno.html"
-    model = Aluno
-
-
-class SolicitacaoList(ListView):
-    template_name = "protocolos/listas/solicitacao.html"
-    model = Solicitacao
-
-
-class HistoricoList(ListView):
-    template_name = "protocolos/listas/historico.html"
-    model = Historico
+class AgendamentoList(ListView):
+    template_name = "protocolos/listas/agendamento.html"
+    model = Agendamento
