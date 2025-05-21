@@ -9,14 +9,14 @@ from .models import (
 class EmpresaCreate(CreateView):
     template_name = "protocolos/form.html"
     model = Empresa
-    fields = ["nome", "email", "telefone", "tipo", "ativo", "cnpj", "nomeFantasia", "descricao", "endereco"]
+    fields = ["user", "cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]
     success_url = reverse_lazy("listar-empresa")
     extra_context = {"titulo": "Cadastro de Empresa"}
 
 class EmpresaUpdate(UpdateView):
     template_name = "protocolos/form.html"
     model = Empresa
-    fields = ["nome", "email", "telefone", "tipo", "ativo", "cnpj", "nomeFantasia", "descricao", "endereco"]
+    fields = ["user", "cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]
     success_url = reverse_lazy("listar-empresa")
     extra_context = {"titulo": "Atualizar Empresa"}
 

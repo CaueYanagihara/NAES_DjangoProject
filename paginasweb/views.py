@@ -20,3 +20,7 @@ class SobreView(TemplateView):
 
 class ContatoView(TemplateView):
     template_name = "paginasweb/contato.html"
+
+
+class EscolherCadastroView(TemplateView):
+    template_name = "paginasweb/escolher_cadastro.html"
