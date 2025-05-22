@@ -4,19 +4,20 @@ from django.urls import reverse_lazy
 from .models import (
     Cliente, Atendente, Empresa, Endereco, HorarioFuncionamento, CategoriaServico, Servico, HorarioAtendimento, Agendamento
 )
+from .forms import AgendamentoForm
 
 # Empresa
 class EmpresaCreate(CreateView):
     template_name = "protocolos/form.html"
     model = Empresa
-    fields = ["cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]
+    fields = ["cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]  # Removido 'user'
     success_url = reverse_lazy("listar-empresa")
     extra_context = {"titulo": "Cadastro de Empresa"}
 
 class EmpresaUpdate(UpdateView):
     template_name = "protocolos/form.html"
     model = Empresa
-    fields = ["cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]
+    fields = ["cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]  # Removido 'user'
     success_url = reverse_lazy("listar-empresa")
     extra_context = {"titulo": "Atualizar Empresa"}
 
@@ -59,14 +60,14 @@ class ClienteList(ListView):
 class AtendenteCreate(CreateView):
     template_name = "protocolos/form.html"
     model = Atendente
-    fields = ["usuario", "empresa", "nome", "especialidades", "is_admin"]
+    fields = ["empresa", "nome", "especialidades"]  # Corrigido
     success_url = reverse_lazy("listar-atendente")
     extra_context = {"titulo": "Cadastro de Atendente"}
 
 class AtendenteUpdate(UpdateView):
     template_name = "protocolos/form.html"
     model = Atendente
-    fields = ["usuario", "empresa", "nome", "especialidades", "is_admin"]
+    fields = ["empresa", "nome", "especialidades"]  # Corrigido
     success_url = reverse_lazy("listar-atendente")
     extra_context = {"titulo": "Atualizar Atendente"}
 
@@ -209,14 +210,14 @@ class HorarioAtendimentoList(ListView):
 class AgendamentoCreate(CreateView):
     template_name = "protocolos/form.html"
     model = Agendamento
-    fields = ["dataHoraInicio", "dataHoraFim", "status", "cliente", "empresa", "servico", "atendente"]
+    form_class = AgendamentoForm  # Usar o form customizado
     success_url = reverse_lazy("listar-agendamento")
     extra_context = {"titulo": "Cadastro de Agendamento"}
 
 class AgendamentoUpdate(UpdateView):
     template_name = "protocolos/form.html"
     model = Agendamento
-    fields = ["dataHoraInicio", "dataHoraFim", "status", "cliente", "empresa", "servico", "atendente"]
+    form_class = AgendamentoForm  # Usar o form customizado
     success_url = reverse_lazy("listar-agendamento")
     extra_context = {"titulo": "Atualizar Agendamento"}
 

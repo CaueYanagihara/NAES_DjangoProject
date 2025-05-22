@@ -52,6 +52,9 @@ class Cliente(AbstractBaseUser, PermissionsMixin):
 
     objects = UsuarioManager()
 
+    def __str__(self):
+        return self.nome
+
 class Endereco(models.Model):
     rua = models.CharField(max_length=255)
     numero = models.CharField(max_length=20)
@@ -64,7 +67,7 @@ class Endereco(models.Model):
         return f"{self.rua}, {self.numero} - {self.bairro}, {self.cidade}"
 
 class Empresa(models.Model):
-    user = models.OneToOneField(Cliente, on_delete=models.CASCADE, limit_choices_to={'tipo': TipoUsuario.EMPRESA}, related_name='empresa')
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     cnpj = models.CharField(max_length=18, unique=True)
     nomeFantasia = models.CharField(max_length=255)
     descricao = models.TextField(blank=True)
@@ -72,6 +75,9 @@ class Empresa(models.Model):
     telefone = models.CharField(max_length=20)
     email = models.EmailField()
     ativo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.nomeFantasia
 
 class HorarioFuncionamento(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='horarios_funcionamento')
@@ -85,6 +91,9 @@ class CategoriaServico(models.Model):
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True)
 
+    def __str__(self):
+        return self.nome
+
 class Servico(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     categoria = models.ForeignKey(CategoriaServico, on_delete=models.CASCADE, related_name='servicos')
@@ -93,11 +102,17 @@ class Servico(models.Model):
     preco = models.DecimalField(max_digits=8, decimal_places=2)
     duracaoMinutos = models.PositiveIntegerField()
 
+    def __str__(self):
+        return self.nome
+
 class Atendente(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='atendentes')
     nome = models.CharField(max_length=255)
     especialidades = models.ManyToManyField(Servico, related_name='atendentes')
+
+    def __str__(self):
+        return self.nome
 
 class HorarioAtendimento(models.Model):
     atendente = models.ForeignKey(Atendente, on_delete=models.CASCADE, related_name='disponibilidade')

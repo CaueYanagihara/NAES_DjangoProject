@@ -14,30 +14,26 @@
     <table class="table table-striped">
         <tr>
             <th>Nome</th>
-            <th>Email</th>
             <th>Empresa</th>
             <th>Especialidades</th>
-            <th>É Admin?</th>
             <th>Opções</th>
         </tr>
         {% for object in object_list %}
         <tr>
-            <td>{{ object.usuario.nome }}</td>
-            <td>{{ object.usuario.email }}</td>
+            <td>{{ object.nome }}</td>
             <td>{{ object.empresa.nomeFantasia }}</td>
             <td>
                 {% for servico in object.especialidades.all %}
                     {{ servico.nome }}{% if not forloop.last %}, {% endif %}
                 {% empty %}Nenhuma especialidade{% endfor %}
             </td>
-            <td>{{ object.is_admin|yesno:"Sim,Não" }}</td>
             <td>
                 <a href="{% url 'editar-atendente' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
                 <a href="{% url 'excluir-atendente' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6">Nenhum funcionário cadastrado.</td></tr>
+        <tr><td colspan="4">Nenhum funcionário cadastrado.</td></tr>
         {% endfor %}
     </table>
 </div>
