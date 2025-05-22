@@ -2,21 +2,21 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from django.urls import reverse_lazy
 from .models import (
-    Empresa, Cliente, Endereco, HorarioFuncionamento, CategoriaServico, Servico, Atendente, HorarioAtendimento, Agendamento
+    Cliente, Atendente, Empresa, Endereco, HorarioFuncionamento, CategoriaServico, Servico, HorarioAtendimento, Agendamento
 )
 
 # Empresa
 class EmpresaCreate(CreateView):
     template_name = "protocolos/form.html"
     model = Empresa
-    fields = ["user", "cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]
+    fields = ["cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]
     success_url = reverse_lazy("listar-empresa")
     extra_context = {"titulo": "Cadastro de Empresa"}
 
 class EmpresaUpdate(UpdateView):
     template_name = "protocolos/form.html"
     model = Empresa
-    fields = ["user", "cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]
+    fields = ["cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]
     success_url = reverse_lazy("listar-empresa")
     extra_context = {"titulo": "Atualizar Empresa"}
 
@@ -34,27 +34,16 @@ class EmpresaList(ListView):
 class ClienteCreate(CreateView):
     template_name = "protocolos/form.html"
     model = Cliente
-    fields = ["nome", "email", "telefone", "tipo", "ativo", "cpf", "password"]
+    fields = ["nome", "email", "telefone", "cpf"]
     success_url = reverse_lazy("listar-cliente")
     extra_context = {"titulo": "Cadastro de Cliente"}
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        self.object.set_password(self.object.password)
-        self.object.save()
-        return response
 
 class ClienteUpdate(UpdateView):
     template_name = "protocolos/form.html"
     model = Cliente
-    fields = ["nome", "email", "telefone", "tipo", "ativo", "cpf", "password"]
+    fields = ["nome", "email", "telefone", "cpf"]
     success_url = reverse_lazy("listar-cliente")
     extra_context = {"titulo": "Atualizar Cliente"}
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        if form.cleaned_data.get('password'):
-            self.object.set_password(self.object.password)
-            self.object.save()
-        return response
 
 class ClienteDelete(DeleteView):
     template_name = "protocolos/form-excluir.html"
@@ -66,18 +55,43 @@ class ClienteList(ListView):
     template_name = "protocolos/listas/cliente.html"
     model = Cliente
 
+# Atendente
+class AtendenteCreate(CreateView):
+    template_name = "protocolos/form.html"
+    model = Atendente
+    fields = ["usuario", "empresa", "nome", "especialidades", "is_admin"]
+    success_url = reverse_lazy("listar-atendente")
+    extra_context = {"titulo": "Cadastro de Atendente"}
+
+class AtendenteUpdate(UpdateView):
+    template_name = "protocolos/form.html"
+    model = Atendente
+    fields = ["usuario", "empresa", "nome", "especialidades", "is_admin"]
+    success_url = reverse_lazy("listar-atendente")
+    extra_context = {"titulo": "Atualizar Atendente"}
+
+class AtendenteDelete(DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = Atendente
+    success_url = reverse_lazy("listar-atendente")
+    extra_context = {"titulo": "Excluir Atendente"}
+
+class AtendenteList(ListView):
+    template_name = "protocolos/listas/atendente.html"
+    model = Atendente
+
 # Endereco
 class EnderecoCreate(CreateView):
     template_name = "protocolos/form.html"
     model = Endereco
-    fields = ["rua", "numero", "bairro", "cidade", "estado", "cep"]
+    fields = ["rua", "numero", "bairro", "cidade", "cep"]
     success_url = reverse_lazy("listar-endereco")
     extra_context = {"titulo": "Cadastro de Endereço"}
 
 class EnderecoUpdate(UpdateView):
     template_name = "protocolos/form.html"
     model = Endereco
-    fields = ["rua", "numero", "bairro", "cidade", "estado", "cep"]
+    fields = ["rua", "numero", "bairro", "cidade", "cep"]
     success_url = reverse_lazy("listar-endereco")
     extra_context = {"titulo": "Atualizar Endereço"}
 
@@ -165,31 +179,6 @@ class ServicoDelete(DeleteView):
 class ServicoList(ListView):
     template_name = "protocolos/listas/servico.html"
     model = Servico
-
-# Atendente
-class AtendenteCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Atendente
-    fields = ["empresa", "nome", "especialidades"]
-    success_url = reverse_lazy("listar-atendente")
-    extra_context = {"titulo": "Cadastro de Atendente"}
-
-class AtendenteUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Atendente
-    fields = ["empresa", "nome", "especialidades"]
-    success_url = reverse_lazy("listar-atendente")
-    extra_context = {"titulo": "Atualizar Atendente"}
-
-class AtendenteDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = Atendente
-    success_url = reverse_lazy("listar-atendente")
-    extra_context = {"titulo": "Excluir Atendente"}
-
-class AtendenteList(ListView):
-    template_name = "protocolos/listas/atendente.html"
-    model = Atendente
 
 # HorarioAtendimento
 class HorarioAtendimentoCreate(CreateView):

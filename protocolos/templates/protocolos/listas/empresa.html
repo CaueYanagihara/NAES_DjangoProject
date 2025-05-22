@@ -17,6 +17,7 @@
             <th>CNPJ</th>
             <th>Email</th>
             <th>Telefone</th>
+            <th>Endereço</th>
             <th>Ativo</th>
             <th>Opções</th>
         </tr>
@@ -26,6 +27,7 @@
             <td>{{ object.cnpj }}</td>
             <td>{{ object.email }}</td>
             <td>{{ object.telefone }}</td>
+            <td>{{ object.endereco }}</td>
             <td>{{ object.ativo|yesno:"Sim,Não" }}</td>
             <td>
                 <a href="{% url 'editar-empresa' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
@@ -33,7 +35,7 @@
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6">Nenhuma empresa cadastrada.</td></tr>
+        <tr><td colspan="7">Nenhuma empresa cadastrada.</td></tr>
         {% endfor %}
     </table>
 </div>

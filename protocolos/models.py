@@ -60,6 +60,9 @@ class Endereco(models.Model):
     estado = models.CharField(max_length=2)
     cep = models.CharField(max_length=10)
 
+    def __str__(self):
+        return f"{self.rua}, {self.numero} - {self.bairro}, {self.cidade}"
+
 class Empresa(models.Model):
     user = models.OneToOneField(Cliente, on_delete=models.CASCADE, limit_choices_to={'tipo': TipoUsuario.EMPRESA}, related_name='empresa')
     cnpj = models.CharField(max_length=18, unique=True)
