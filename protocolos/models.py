@@ -36,7 +36,7 @@ class UsuarioManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, nome, senha, **extra_fields)
 
-class Cliente(AbstractBaseUser, PermissionsMixin):
+class Cliente(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nome = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
@@ -46,11 +46,6 @@ class Cliente(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     cpf = models.CharField(max_length=14, unique=True)
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['nome']
-
-    objects = UsuarioManager()
 
     def __str__(self):
         return self.nome
@@ -71,13 +66,25 @@ class Empresa(models.Model):
     cnpj = models.CharField(max_length=18, unique=True)
     nomeFantasia = models.CharField(max_length=255)
     descricao = models.TextField(blank=True)
-    endereco = models.OneToOneField(Endereco, on_delete=models.CASCADE, related_name='empresa')
+    
+    # Campos de endereço diretos
+    rua = models.CharField(max_length=255, verbose_name="Rua")
+    numero = models.CharField(max_length=20, verbose_name="Número")
+    bairro = models.CharField(max_length=100, verbose_name="Bairro")
+    cidade = models.CharField(max_length=100, verbose_name="Cidade")
+    estado = models.CharField(max_length=2, verbose_name="Estado")
+    cep = models.CharField(max_length=10, verbose_name="CEP")
+    
     telefone = models.CharField(max_length=20)
     email = models.EmailField()
     ativo = models.BooleanField(default=True)
 
     def __str__(self):
         return self.nomeFantasia
+
+    @property
+    def endereco_completo(self):
+        return f"{self.rua}, {self.numero} - {self.bairro}, {self.cidade}/{self.estado} - CEP: {self.cep}"
 
 class HorarioFuncionamento(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='horarios_funcionamento')

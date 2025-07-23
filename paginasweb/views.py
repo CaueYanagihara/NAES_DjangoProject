@@ -1,17 +1,9 @@
-from django.shortcuts import render
-
-# View que apenas renderiza uma página Web
 from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-# Cria uma view para renderizar a página inicial
-# e faz uma herança de TemplateView
+
 class PaginaInicial(TemplateView):
     template_name = "paginasweb/index.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nome"] = "Caue Grande"
-        return context
 
 
 class SobreView(TemplateView):
@@ -24,3 +16,14 @@ class ContatoView(TemplateView):
 
 class EscolherCadastroView(TemplateView):
     template_name = "paginasweb/escolher_cadastro.html"
+
+
+class HomeView(LoginRequiredMixin, TemplateView):
+    """Página inicial após login - Dashboard"""
+    template_name = "paginasweb/home.html"
+    login_url = "/protocolo/login/"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Dashboard'
+        return context

@@ -6,7 +6,7 @@
         <span class="text-gradient d-inline">Empresas</span>
     </h1>
     <a href="{% url 'cadastrar-empresa' %}" class="btn btn-primary">+ Adicionar Empresa</a>
-    <a href="/escolher-cadastro/" class="btn btn-secondary ms-2">Voltar</a>
+    <a href="{% url 'home' %}" class="btn btn-secondary ms-2">Voltar</a>
 </div>
 {% endblock header %}
 {% block conteudo %}
@@ -27,7 +27,7 @@
             <td>{{ object.cnpj }}</td>
             <td>{{ object.email }}</td>
             <td>{{ object.telefone }}</td>
-            <td>{{ object.endereco }}</td>
+            <td>{{ object.endereco_completo }}</td>
             <td>{{ object.ativo|yesno:"Sim,Não" }}</td>
             <td>
                 <a href="{% url 'editar-empresa' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>

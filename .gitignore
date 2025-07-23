@@ -10,6 +10,7 @@ venv/
 ENV/
 env/
 .venv/
+**/venv/
 
 # Django
 db.sqlite3

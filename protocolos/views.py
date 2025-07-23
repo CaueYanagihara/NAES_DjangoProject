@@ -1,24 +1,54 @@
+
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views import View
 from django.views.generic.list import ListView
 from django.urls import reverse_lazy
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
 from .models import (
-    Cliente, Atendente, Empresa, Endereco, HorarioFuncionamento, CategoriaServico, Servico, HorarioAtendimento, Agendamento
+    Cliente, Atendente, Empresa, Endereco, HorarioFuncionamento, CategoriaServico, Servico, HorarioAtendimento, Agendamento, StatusAgendamento
 )
-from .forms import AgendamentoForm
+from .forms import AgendamentoForm, EmpresaForm
+
+
+# Movimento: Progredir Status do Agendamento
+class ProgredirStatusAgendamentoView(View):
+    STATUS_PROXIMO = {
+        StatusAgendamento.PENDENTE: StatusAgendamento.CONFIRMADO,
+        StatusAgendamento.CONFIRMADO: StatusAgendamento.CONCLUIDO,
+    }
+
+    MENSAGENS = {
+        StatusAgendamento.PENDENTE: "Agendamento confirmado com sucesso!",
+        StatusAgendamento.CONFIRMADO: "Agendamento concluído com sucesso!",
+    }
+
+    def post(self, request, pk):
+        agendamento = get_object_or_404(Agendamento, pk=pk)
+        status_atual = agendamento.status
+        proximo_status = self.STATUS_PROXIMO.get(status_atual)
+        if proximo_status:
+            agendamento.status = proximo_status
+            agendamento.save()
+            messages.success(request, self.MENSAGENS[status_atual])
+        else:
+            messages.warning(request, "Ação não permitida para o status atual.")
+        return redirect("listar-agendamento")
 
 # Empresa
 class EmpresaCreate(CreateView):
-    template_name = "protocolos/form.html"
+    template_name = "protocolos/empresa-form.html"
     model = Empresa
-    fields = ["cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]  # Removido 'user'
+    form_class = EmpresaForm
     success_url = reverse_lazy("listar-empresa")
     extra_context = {"titulo": "Cadastro de Empresa"}
 
 class EmpresaUpdate(UpdateView):
-    template_name = "protocolos/form.html"
+    template_name = "protocolos/empresa-form.html"
     model = Empresa
-    fields = ["cnpj", "nomeFantasia", "descricao", "endereco", "telefone", "email", "ativo"]  # Removido 'user'
+    form_class = EmpresaForm
     success_url = reverse_lazy("listar-empresa")
+    extra_context = {"titulo": "Atualizar Empresa"}
     extra_context = {"titulo": "Atualizar Empresa"}
 
 class EmpresaDelete(DeleteView):
@@ -230,3 +260,22 @@ class AgendamentoDelete(DeleteView):
 class AgendamentoList(ListView):
     template_name = "protocolos/listas/agendamento.html"
     model = Agendamento
+
+
+# View específica para cadastro público de clientes
+class ClienteCreatePublico(CreateView):
+    template_name = "protocolos/cadastro-cliente-publico.html"
+    model = Cliente
+    fields = ["nome", "email", "telefone", "cpf"]
+    success_url = reverse_lazy("index")
+    extra_context = {"titulo": "Cadastro de Cliente"}
+
+
+def custom_logout(request):
+    """View customizada para logout com mensagem de confirmação"""
+    from django.contrib.auth import logout
+    from django.shortcuts import render
+    
+    logout(request)
+    messages.success(request, 'Você foi desconectado com sucesso!')
+    return render(request, 'paginasweb/logout.html')

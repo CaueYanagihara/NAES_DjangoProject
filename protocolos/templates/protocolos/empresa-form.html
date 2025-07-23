@@ -1,0 +1,201 @@
+{% extends "paginasweb/modelos/index.html" %}
+
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">{{ titulo }}</span>
+    </h1>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<style>
+    .fieldset-box {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+        background-color: #f8f9fa;
+    }
+    .fieldset-title {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 5px;
+    }
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Informações Básicas -->
+                <div class="fieldset-box">
+                    <div class="fieldset-title">
+                        <i class="fas fa-building"></i> Informações da Empresa
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.cnpj.label_tag }}
+                                {{ form.cnpj }}
+                                {% if form.cnpj.errors %}
+                                    <div class="text-danger">{{ form.cnpj.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.nomeFantasia.label_tag }}
+                                {{ form.nomeFantasia }}
+                                {% if form.nomeFantasia.errors %}
+                                    <div class="text-danger">{{ form.nomeFantasia.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                {{ form.descricao.label_tag }}
+                                {{ form.descricao }}
+                                {% if form.descricao.errors %}
+                                    <div class="text-danger">{{ form.descricao.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Endereço -->
+                <div class="fieldset-box">
+                    <div class="fieldset-title">
+                        <i class="fas fa-map-marker-alt"></i> Endereço
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                {{ form.rua.label_tag }}
+                                {{ form.rua }}
+                                {% if form.rua.errors %}
+                                    <div class="text-danger">{{ form.rua.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.numero.label_tag }}
+                                {{ form.numero }}
+                                {% if form.numero.errors %}
+                                    <div class="text-danger">{{ form.numero.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.bairro.label_tag }}
+                                {{ form.bairro }}
+                                {% if form.bairro.errors %}
+                                    <div class="text-danger">{{ form.bairro.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.cidade.label_tag }}
+                                {{ form.cidade }}
+                                {% if form.cidade.errors %}
+                                    <div class="text-danger">{{ form.cidade.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                {{ form.estado.label_tag }}
+                                {{ form.estado }}
+                                {% if form.estado.errors %}
+                                    <div class="text-danger">{{ form.estado.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.cep.label_tag }}
+                                {{ form.cep }}
+                                {% if form.cep.errors %}
+                                    <div class="text-danger">{{ form.cep.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contato -->
+                <div class="fieldset-box">
+                    <div class="fieldset-title">
+                        <i class="fas fa-phone"></i> Informações de Contato
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.telefone.label_tag }}
+                                {{ form.telefone }}
+                                {% if form.telefone.errors %}
+                                    <div class="text-danger">{{ form.telefone.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.email.label_tag }}
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="fieldset-box">
+                    <div class="fieldset-title">
+                        <i class="fas fa-cog"></i> Configurações
+                    </div>
+                    <div class="form-check">
+                        {{ form.ativo }}
+                        {{ form.ativo.label_tag }}
+                        {% if form.ativo.errors %}
+                            <div class="text-danger">{{ form.ativo.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                    <a href="{% url 'listar-empresa' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock conteudo %}

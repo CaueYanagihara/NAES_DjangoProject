@@ -1,0 +1,57 @@
+{% extends "paginasweb/modelos/index.html" %}
+
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Cadastro de Cliente</span>
+    </h1>
+    <p class="lead">Cadastre-se como cliente da nossa loja para fazer agendamentos</p>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<style>
+    form {
+        font-size: 120%;
+    }
+    .card {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+</style>
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="card p-4">
+            <div class="card-body">
+                <h5 class="card-title text-center mb-4">Informações do Cliente</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-user-plus"></i> Cadastrar Cliente
+                        </button>
+                        <a href="{% url 'index' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <p class="text-muted">
+                Já tem uma conta de usuário? 
+                <a href="{% url 'login' %}" class="text-decoration-none">Faça login aqui</a>
+            </p>
+            <p class="text-muted">
+                Precisa criar uma conta de usuário? 
+                <a href="{% url 'cadastrar-usuario' %}" class="text-decoration-none">Cadastre-se como usuário</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock conteudo %}

@@ -32,8 +32,23 @@
             <td>{{ object.dataHoraFim }}</td>
             <td>{{ object.get_status_display }}</td>
             <td>
-                <a href="{% url 'editar-agendamento' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
-                <a href="{% url 'excluir-agendamento' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div>
+                        <a href="{% url 'editar-agendamento' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                        <a href="{% url 'excluir-agendamento' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+                    </div>
+                    {% if object.status == 'PENDENTE' %}
+                    <form method="post" action="{% url 'progredir-status-agendamento' object.pk %}" style="margin-top: 6px;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success">Confirmar</button>
+                    </form>
+                    {% elif object.status == 'CONFIRMADO' %}
+                    <form method="post" action="{% url 'progredir-status-agendamento' object.pk %}" style="margin-top: 6px;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-primary">Concluir</button>
+                    </form>
+                    {% endif %}
+                </div>
             </td>
         </tr>
         {% empty %}

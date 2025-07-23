@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NAES</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.15);
+        }
+        .btn {
+            border-radius: 10px;
+            padding: 12px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card">
+                    <div class="card-header text-white text-center py-4">
+                        <h3><i class="fas fa-sign-in-alt me-2"></i>Entrar no Sistema</h3>
+                        <p class="mb-0">NAES - Sistema de Agendamentos</p>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Erro!</strong> Verifique os dados informados.
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">
+                                    <i class="fas fa-info-circle me-2"></i>{{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">
+                                    <i class="fas fa-user me-2 text-primary"></i>Nome de Usuário
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       name="username" 
+                                       id="{{ form.username.id_for_label }}"
+                                       value="{{ form.username.value|default:'' }}"
+                                       placeholder="Digite seu usuário"
+                                       required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="{{ form.password.id_for_label }}" class="form-label fw-bold">
+                                    <i class="fas fa-lock me-2 text-primary"></i>Senha
+                                </label>
+                                <input type="password" 
+                                       class="form-control" 
+                                       name="password" 
+                                       id="{{ form.password.id_for_label }}"
+                                       placeholder="Digite sua senha"
+                                       required>
+                            </div>
+
+                            <div class="d-grid gap-2 mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr class="my-4">
+
+                        <div class="text-center">
+                            <p class="text-muted mb-2">Ainda não tem uma conta?</p>
+                            <a href="/protocolo/cadastrar-usuario/" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>Criar Conta
+                            </a>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <a href="/" class="btn btn-link text-decoration-none">
+                                <i class="fas fa-arrow-left me-2"></i>Voltar à Página Inicial
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

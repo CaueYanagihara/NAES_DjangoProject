@@ -6,16 +6,21 @@
 <div class="row">
     <div class="col-lg-6">
         <div class="text-center my-3">
-            <h2 class="display-5 fw-bolder"><span class="text-gradient d-inline">Bem-vindo ao Agende Fácil</span></h2>
-            <p class="lead fw-light mb-4">Agende serviços de beleza, estética, barbearia e muito mais de forma rápida e prática.</p>
-            <p class="text-muted">Escolha o serviço, o profissional e o melhor horário para você. Tudo online, fácil e seguro!</p>
-            <div class="d-flex justify-content-center fs-2 gap-4">
-                <!-- Espaço para ícones de redes sociais ou ações futuras -->
+            <h2 class="display-5 fw-bolder"><span class="text-gradient d-inline">Sistema NAES 2025</span></h2>
+            <p class="lead fw-light mb-4">Plataforma completa para gestão de agendamentos e serviços.</p>
+            <p class="text-muted">Gerencie empresas, clientes, atendentes e agendamentos em um só lugar!</p>
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Fazer Login
+                </a>
+                <a href="{% url 'cadastrar-usuario' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Criar Conta
+                </a>
             </div>
         </div>
     </div>
     <div class="col-lg-6 text-center">
-        <img src="{% static 'img/servicos.png' %}" class="img-fluid w-100" alt="Agendamento de Serviços">
+        <img src="{% static 'img/servicos.png' %}" class="img-fluid w-100" alt="Sistema de Agendamentos">
     </div>
 </div>
 {% endblock conteudo %}

@@ -1,9 +1,14 @@
 from django.urls import path
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.forms import UserCreationForm
+from django.views.generic.edit import CreateView
+from django.urls import reverse_lazy
+from . import views
 
 # Importar suas views
 from .views import (
     EmpresaCreate, EmpresaUpdate, EmpresaDelete, EmpresaList,
-    ClienteCreate, ClienteUpdate, ClienteDelete, ClienteList,
+    ClienteCreate, ClienteUpdate, ClienteDelete, ClienteList, ClienteCreatePublico,
     EnderecoCreate, EnderecoUpdate, EnderecoDelete, EnderecoList,
     HorarioFuncionamentoCreate, HorarioFuncionamentoUpdate, HorarioFuncionamentoDelete, HorarioFuncionamentoList,
     CategoriaServicoCreate, CategoriaServicoUpdate, CategoriaServicoDelete, CategoriaServicoList,
@@ -11,6 +16,7 @@ from .views import (
     AtendenteCreate, AtendenteUpdate, AtendenteDelete, AtendenteList,
     HorarioAtendimentoCreate, HorarioAtendimentoUpdate, HorarioAtendimentoDelete, HorarioAtendimentoList,
     AgendamentoCreate, AgendamentoUpdate, AgendamentoDelete, AgendamentoList,
+    ProgredirStatusAgendamentoView,
 )
 
 urlpatterns = [
@@ -67,4 +73,19 @@ urlpatterns = [
     path('agendamento/editar/<uuid:pk>/', AgendamentoUpdate.as_view(), name='editar-agendamento'),
     path('agendamento/excluir/<uuid:pk>/', AgendamentoDelete.as_view(), name='excluir-agendamento'),
     path('agendamento/listar/', AgendamentoList.as_view(), name='listar-agendamento'),
+    path('agendamento/progredir-status/<uuid:pk>/', ProgredirStatusAgendamentoView.as_view(), name='progredir-status-agendamento'),
+
+    # URLs de autenticação do Django
+    path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('logout/', views.custom_logout, name='logout'),
+
+    # Cadastro de usuário do sistema (autenticação)
+    path('cadastrar-usuario/', CreateView.as_view(
+        template_name='paginasweb/cadastro.html',
+        form_class=UserCreationForm,
+        success_url=reverse_lazy('login')
+    ), name='cadastrar-usuario'),
+
+    # Cadastro de cliente da loja (entidade de negócio)
+    path('cadastrar/', ClienteCreatePublico.as_view(), name='cadastrar-cliente-publico'),
 ]
