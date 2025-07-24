@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import User
 
 class TipoUsuario(models.TextChoices):
     EMPRESA = 'EMPRESA', 'Empresa'
@@ -21,49 +21,72 @@ class StatusAgendamento(models.TextChoices):
     CANCELADO = 'CANCELADO', 'Cancelado'
     CONCLUIDO = 'CONCLUIDO', 'Concluído'
 
-class UsuarioManager(BaseUserManager):
-    def create_user(self, email, nome, senha=None, **extra_fields):
-        if not email:
-            raise ValueError('O email é obrigatório')
-        email = self.normalize_email(email)
-        user = self.model(email=email, nome=nome, **extra_fields)
-        user.set_password(senha)
-        user.save(using=self._db)
-        return user
+# NOVO: Modelo Tenant para isolamento de dados
+class Tenant(models.Model):
+    """Representa uma organização/site isolado no sistema"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nome = models.CharField(max_length=255, help_text="Nome da organização/empresa")
+    slug = models.SlugField(unique=True, max_length=50, help_text="Identificador único (URL amigável)")
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name='tenant', verbose_name="Proprietário")
+    ativo = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+    
+    # Configurações do tenant
+    max_empresas = models.PositiveIntegerField(default=5, help_text="Limite de empresas")
+    max_clientes = models.PositiveIntegerField(default=1000, help_text="Limite de clientes")
+    max_agendamentos_mes = models.PositiveIntegerField(default=500, help_text="Limite de agendamentos por mês")
 
-    def create_superuser(self, email, nome, senha=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        return self.create_user(email, nome, senha, **extra_fields)
+    class Meta:
+        verbose_name = "Tenant"
+        verbose_name_plural = "Tenants"
+        ordering = ['nome']
+
+    def __str__(self):
+        return f"{self.nome} ({self.slug})"
+
+    def get_absolute_url(self):
+        return f"/{self.slug}/"
 
 class Cliente(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nome = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    email = models.EmailField()
     telefone = models.CharField(max_length=20)
     tipo = models.CharField(max_length=10, choices=TipoUsuario.choices, default=TipoUsuario.CLIENTE)
     ativo = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    cpf = models.CharField(max_length=14, unique=True)
+    cpf = models.CharField(max_length=14)
+    
+    # Campos de endereço diretos (opcionais)
+    rua = models.CharField(max_length=255, blank=True, verbose_name="Rua")
+    numero = models.CharField(max_length=20, blank=True, verbose_name="Número")
+    bairro = models.CharField(max_length=100, blank=True, verbose_name="Bairro")
+    cidade = models.CharField(max_length=100, blank=True, verbose_name="Cidade")
+    estado = models.CharField(max_length=2, blank=True, verbose_name="Estado")
+    cep = models.CharField(max_length=10, blank=True, verbose_name="CEP")
+    
+    # Campo tenant opcional inicialmente
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Cliente"
+        verbose_name_plural = "Clientes"
 
     def __str__(self):
         return self.nome
-
-class Endereco(models.Model):
-    rua = models.CharField(max_length=255)
-    numero = models.CharField(max_length=20)
-    bairro = models.CharField(max_length=100)
-    cidade = models.CharField(max_length=100)
-    estado = models.CharField(max_length=2)
-    cep = models.CharField(max_length=10)
-
-    def __str__(self):
-        return f"{self.rua}, {self.numero} - {self.bairro}, {self.cidade}"
+    
+    @property
+    def endereco_completo(self):
+        """Retorna o endereço completo formatado"""
+        if not any([self.rua, self.numero, self.bairro, self.cidade]):
+            return "Endereço não informado"
+        return f"{self.rua}, {self.numero} - {self.bairro}, {self.cidade}/{self.estado} - CEP: {self.cep}"
 
 class Empresa(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    cnpj = models.CharField(max_length=18, unique=True)
+    cnpj = models.CharField(max_length=18)
     nomeFantasia = models.CharField(max_length=255)
     descricao = models.TextField(blank=True)
     
@@ -78,6 +101,12 @@ class Empresa(models.Model):
     telefone = models.CharField(max_length=20)
     email = models.EmailField()
     ativo = models.BooleanField(default=True)
+    # Campo tenant opcional inicialmente
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Empresa"
+        verbose_name_plural = "Empresas"
 
     def __str__(self):
         return self.nomeFantasia
@@ -91,12 +120,27 @@ class HorarioFuncionamento(models.Model):
     diaSemana = models.IntegerField(choices=DiaSemana.choices)
     horaInicio = models.TimeField()
     horaFim = models.TimeField()
+    # Campo tenant opcional inicialmente
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Horário de Funcionamento"
+        verbose_name_plural = "Horários de Funcionamento"
+
+    def __str__(self):
+        return f"{self.empresa.nomeFantasia} - {self.get_diaSemana_display()}"
 
 class CategoriaServico(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='categorias_servicos')
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True)
+    # Campo tenant opcional inicialmente
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Categoria de Serviço"
+        verbose_name_plural = "Categorias de Serviços"
 
     def __str__(self):
         return self.nome
@@ -108,6 +152,12 @@ class Servico(models.Model):
     descricao = models.TextField(blank=True)
     preco = models.DecimalField(max_digits=8, decimal_places=2)
     duracaoMinutos = models.PositiveIntegerField()
+    # Campo tenant opcional inicialmente
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Serviço"
+        verbose_name_plural = "Serviços"
 
     def __str__(self):
         return self.nome
@@ -116,16 +166,36 @@ class Atendente(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='atendentes')
     nome = models.CharField(max_length=255)
+    email = models.EmailField(unique=True, help_text="Email que será usado para login no sistema")
+    telefone = models.CharField(max_length=20, blank=True)
     especialidades = models.ManyToManyField(Servico, related_name='atendentes')
+    # Vinculação com usuário do sistema
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='atendente', null=True, blank=True)
+    # Campo tenant opcional inicialmente
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Atendente"
+        verbose_name_plural = "Atendentes"
+        unique_together = [['tenant', 'email']]  # Email único apenas dentro do tenant
 
     def __str__(self):
-        return self.nome
+        return f"{self.nome} ({self.email})"
 
 class HorarioAtendimento(models.Model):
     atendente = models.ForeignKey(Atendente, on_delete=models.CASCADE, related_name='disponibilidade')
     diaSemana = models.IntegerField(choices=DiaSemana.choices)
     horaInicio = models.TimeField()
     horaFim = models.TimeField()
+    # Campo tenant opcional inicialmente
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Horário de Atendimento"
+        verbose_name_plural = "Horários de Atendimento"
+
+    def __str__(self):
+        return f"{self.atendente.nome} - {self.get_diaSemana_display()}"
 
 class Agendamento(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -136,3 +206,12 @@ class Agendamento(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='agendamentos')
     servico = models.ForeignKey(Servico, on_delete=models.CASCADE, related_name='agendamentos')
     atendente = models.ForeignKey(Atendente, on_delete=models.CASCADE, related_name='agendamentos')
+    # Campo tenant opcional inicialmente
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Agendamento"
+        verbose_name_plural = "Agendamentos"
+
+    def __str__(self):
+        return f"{self.cliente.nome} - {self.servico.nome} ({self.dataHoraInicio.strftime('%d/%m/%Y %H:%M')})"

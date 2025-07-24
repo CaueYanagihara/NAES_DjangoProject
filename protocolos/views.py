@@ -1,18 +1,443 @@
-
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views import View
 from django.views.generic.list import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.utils.text import slugify
 from .models import (
-    Cliente, Atendente, Empresa, Endereco, HorarioFuncionamento, CategoriaServico, Servico, HorarioAtendimento, Agendamento, StatusAgendamento
+    Cliente, Atendente, Empresa, HorarioFuncionamento, CategoriaServico, 
+    Servico, HorarioAtendimento, Agendamento, StatusAgendamento, Tenant
 )
-from .forms import AgendamentoForm, EmpresaForm
+from .forms import AgendamentoForm, EmpresaForm, CustomUserCreationForm, AtendenteForm
+from django.http import HttpResponseRedirect
 
+
+# Mixin para isolamento multi-tenant
+class TenantMixin:
+    """Mixin que automaticamente filtra dados pelo tenant do usuário logado"""
+    
+    def get_tenant(self):
+        """Retorna o tenant do usuário logado ou cria um se não existir"""
+        if not self.request.user.is_authenticated:
+            raise PermissionDenied("Usuário deve estar logado")
+        
+        try:
+            return self.request.user.tenant
+        except Tenant.DoesNotExist:
+            return self.create_tenant_for_user()
+    
+    def create_tenant_for_user(self):
+        """Cria um tenant automaticamente para o usuário"""
+        user = self.request.user
+        base_slug = slugify(user.username)
+        slug = base_slug
+        counter = 1
+        
+        while Tenant.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
+        tenant = Tenant.objects.create(
+            nome=f"Organização de {user.get_full_name() or user.username}",
+            slug=slug,
+            owner=user
+        )
+        return tenant
+    
+    def get_queryset(self):
+        """Filtra queryset pelo tenant do usuário"""
+        queryset = super().get_queryset()
+        tenant = self.get_tenant()
+        return queryset.filter(tenant=tenant)
+    
+    def form_valid(self, form):
+        """Automaticamente associa o objeto ao tenant"""
+        if hasattr(form.instance, 'tenant'):
+            form.instance.tenant = self.get_tenant()
+        return super().form_valid(form)
+
+# View customizada para cadastro de usuários com criação automática de tenant
+class CustomUserCreateView(CreateView):
+    template_name = 'paginasweb/cadastro.html'
+    form_class = CustomUserCreationForm
+    success_url = reverse_lazy('login')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Cadastro de Usuário'
+        return context
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = form.instance
+        
+        # Cria tenant automaticamente para o novo usuário
+        base_slug = slugify(user.username)
+        slug = base_slug
+        counter = 1
+        
+        while Tenant.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
+        Tenant.objects.create(
+            nome=f"Organização de {user.get_full_name() or user.username}",
+            slug=slug,
+            owner=user
+        )
+        
+        messages.success(
+            self.request, 
+            f'Conta criada com sucesso! Seu espaço privado foi configurado automaticamente. '
+            'Agora você pode fazer login e começar a usar seu próprio site de agendamentos.'
+        )
+        return response
+
+# Views com TenantMixin aplicado
+
+# Empresa
+class EmpresaCreate(LoginRequiredMixin, TenantMixin, CreateView):
+    template_name = "protocolos/empresa-form.html"
+    model = Empresa
+    form_class = EmpresaForm
+    success_url = reverse_lazy("listar-empresa")
+    extra_context = {"titulo": "Cadastro de Empresa"}
+    login_url = "/protocolo/login/"
+
+class EmpresaUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+    template_name = "protocolos/empresa-form.html"
+    model = Empresa
+    form_class = EmpresaForm
+    success_url = reverse_lazy("listar-empresa")
+    extra_context = {"titulo": "Atualizar Empresa"}
+    login_url = "/protocolo/login/"
+
+class EmpresaDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = Empresa
+    success_url = reverse_lazy("listar-empresa")
+    extra_context = {"titulo": "Excluir Empresa"}
+    login_url = "/protocolo/login/"
+
+class EmpresaList(LoginRequiredMixin, TenantMixin, ListView):
+    template_name = "protocolos/listas/empresa.html"
+    model = Empresa
+    login_url = "/protocolo/login/"
+
+# Cliente
+class ClienteCreate(LoginRequiredMixin, TenantMixin, CreateView):
+    template_name = "protocolos/form.html"
+    model = Cliente
+    fields = ["nome", "email", "telefone", "cpf", "rua", "numero", "bairro", "cidade", "estado", "cep"]
+    success_url = reverse_lazy("listar-cliente")
+    extra_context = {"titulo": "Cadastro de Cliente"}
+    login_url = "/protocolo/login/"
+
+class ClienteUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+    template_name = "protocolos/form.html"
+    model = Cliente
+    fields = ["nome", "email", "telefone", "cpf", "rua", "numero", "bairro", "cidade", "estado", "cep"]
+    success_url = reverse_lazy("listar-cliente")
+    extra_context = {"titulo": "Atualizar Cliente"}
+    login_url = "/protocolo/login/"
+
+class ClienteDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = Cliente
+    success_url = reverse_lazy("listar-cliente")
+    extra_context = {"titulo": "Excluir Cliente"}
+    login_url = "/protocolo/login/"
+
+class ClienteList(LoginRequiredMixin, TenantMixin, ListView):
+    template_name = "protocolos/listas/cliente.html"
+    model = Cliente
+    login_url = "/protocolo/login/"
+
+# Aplicando TenantMixin a todas as outras views...
+class AtendenteCreate(LoginRequiredMixin, TenantMixin, CreateView):
+    template_name = "protocolos/atendente-form.html"
+    model = Atendente
+    form_class = AtendenteForm
+    success_url = reverse_lazy("listar-atendente")
+    extra_context = {"titulo": "Cadastro de Atendente"}
+    login_url = "/protocolo/login/"
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['tenant'] = self.get_tenant()
+        return kwargs
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        atendente = form.instance
+        
+        # Verificar se senha foi gerada automaticamente
+        if hasattr(form, 'senha_gerada') and form.senha_gerada:
+            messages.success(
+                self.request,
+                f'Atendente {atendente.nome} cadastrado com sucesso! '
+                f'Senha gerada automaticamente: <strong>{form.senha_gerada}</strong> '
+                '(Anote esta senha, ela não será exibida novamente)'
+            )
+        else:
+            messages.success(
+                self.request,
+                f'Atendente {atendente.nome} cadastrado com sucesso! '
+                'O usuário já pode fazer login no sistema com o email cadastrado.'
+            )
+        
+        return response
+
+class AtendenteUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+    template_name = "protocolos/form.html"
+    model = Atendente
+    fields = ["empresa", "nome", "email", "telefone", "especialidades"]
+    success_url = reverse_lazy("listar-atendente")
+    extra_context = {"titulo": "Atualizar Atendente"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        tenant = self.get_tenant()
+        form.fields['empresa'].queryset = Empresa.objects.filter(tenant=tenant)
+        form.fields['especialidades'].queryset = Servico.objects.filter(tenant=tenant)
+        return form
+    
+    def form_valid(self, form):
+        # Atualizar dados do usuário associado
+        atendente = form.instance
+        if atendente.user:
+            user = atendente.user
+            user.email = atendente.email
+            user.username = atendente.email
+            user.first_name = atendente.nome.split()[0] if atendente.nome else ''
+            user.last_name = ' '.join(atendente.nome.split()[1:]) if len(atendente.nome.split()) > 1 else ''
+            user.save()
+        
+        messages.success(self.request, f'Dados do atendente {atendente.nome} atualizados com sucesso!')
+        return super().form_valid(form)
+
+class AtendenteDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = Atendente
+    success_url = reverse_lazy("listar-atendente")
+    extra_context = {"titulo": "Excluir Atendente"}
+    login_url = "/protocolo/login/"
+
+class AtendenteList(LoginRequiredMixin, TenantMixin, ListView):
+    template_name = "protocolos/listas/atendente.html"
+    model = Atendente
+    login_url = "/protocolo/login/"
+
+# Continuando com as outras views...
+class HorarioFuncionamentoCreate(LoginRequiredMixin, TenantMixin, CreateView):
+    template_name = "protocolos/form.html"
+    model = HorarioFuncionamento
+    fields = ["empresa", "diaSemana", "horaInicio", "horaFim"]
+    success_url = reverse_lazy("listar-horario-funcionamento")
+    extra_context = {"titulo": "Cadastro de Horário de Funcionamento"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['empresa'].queryset = Empresa.objects.filter(tenant=self.get_tenant())
+        return form
+
+class HorarioFuncionamentoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+    template_name = "protocolos/form.html"
+    model = HorarioFuncionamento
+    fields = ["empresa", "diaSemana", "horaInicio", "horaFim"]
+    success_url = reverse_lazy("listar-horario-funcionamento")
+    extra_context = {"titulo": "Atualizar Horário de Funcionamento"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['empresa'].queryset = Empresa.objects.filter(tenant=self.get_tenant())
+        return form
+
+class HorarioFuncionamentoDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = HorarioFuncionamento
+    success_url = reverse_lazy("listar-horario-funcionamento")
+    extra_context = {"titulo": "Excluir Horário de Funcionamento"}
+    login_url = "/protocolo/login/"
+
+class HorarioFuncionamentoList(LoginRequiredMixin, TenantMixin, ListView):
+    template_name = "protocolos/listas/horario_funcionamento.html"
+    model = HorarioFuncionamento
+    login_url = "/protocolo/login/"
+
+# CategoriaServico
+class CategoriaServicoCreate(LoginRequiredMixin, TenantMixin, CreateView):
+    template_name = "protocolos/form.html"
+    model = CategoriaServico
+    fields = ["empresa", "nome", "descricao"]
+    success_url = reverse_lazy("listar-categoria-servico")
+    extra_context = {"titulo": "Cadastro de Categoria de Serviço"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['empresa'].queryset = Empresa.objects.filter(tenant=self.get_tenant())
+        return form
+
+class CategoriaServicoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+    template_name = "protocolos/form.html"
+    model = CategoriaServico
+    fields = ["empresa", "nome", "descricao"]
+    success_url = reverse_lazy("listar-categoria-servico")
+    extra_context = {"titulo": "Atualizar Categoria de Serviço"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['empresa'].queryset = Empresa.objects.filter(tenant=self.get_tenant())
+        return form
+
+class CategoriaServicoDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = CategoriaServico
+    success_url = reverse_lazy("listar-categoria-servico")
+    extra_context = {"titulo": "Excluir Categoria de Serviço"}
+    login_url = "/protocolo/login/"
+
+class CategoriaServicoList(LoginRequiredMixin, TenantMixin, ListView):
+    template_name = "protocolos/listas/categoria_servico.html"
+    model = CategoriaServico
+    login_url = "/protocolo/login/"
+
+# Servico
+class ServicoCreate(LoginRequiredMixin, TenantMixin, CreateView):
+    template_name = "protocolos/form.html"
+    model = Servico
+    fields = ["categoria", "nome", "descricao", "preco", "duracaoMinutos"]
+    success_url = reverse_lazy("listar-servico")
+    extra_context = {"titulo": "Cadastro de Serviço"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['categoria'].queryset = CategoriaServico.objects.filter(tenant=self.get_tenant())
+        return form
+
+class ServicoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+    template_name = "protocolos/form.html"
+    model = Servico
+    fields = ["categoria", "nome", "descricao", "preco", "duracaoMinutos"]
+    success_url = reverse_lazy("listar-servico")
+    extra_context = {"titulo": "Atualizar Serviço"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['categoria'].queryset = CategoriaServico.objects.filter(tenant=self.get_tenant())
+        return form
+
+class ServicoDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = Servico
+    success_url = reverse_lazy("listar-servico")
+    extra_context = {"titulo": "Excluir Serviço"}
+    login_url = "/protocolo/login/"
+
+class ServicoList(LoginRequiredMixin, TenantMixin, ListView):
+    template_name = "protocolos/listas/servico.html"
+    model = Servico
+    login_url = "/protocolo/login/"
+
+# HorarioAtendimento
+class HorarioAtendimentoCreate(LoginRequiredMixin, TenantMixin, CreateView):
+    template_name = "protocolos/form.html"
+    model = HorarioAtendimento
+    fields = ["atendente", "diaSemana", "horaInicio", "horaFim"]
+    success_url = reverse_lazy("listar-horario-atendimento")
+    extra_context = {"titulo": "Cadastro de Horário de Atendimento"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['atendente'].queryset = Atendente.objects.filter(tenant=self.get_tenant())
+        return form
+
+class HorarioAtendimentoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+    template_name = "protocolos/form.html"
+    model = HorarioAtendimento
+    fields = ["atendente", "diaSemana", "horaInicio", "horaFim"]
+    success_url = reverse_lazy("listar-horario-atendimento")
+    extra_context = {"titulo": "Atualizar Horário de Atendimento"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['atendente'].queryset = Atendente.objects.filter(tenant=self.get_tenant())
+        return form
+
+class HorarioAtendimentoDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = HorarioAtendimento
+    success_url = reverse_lazy("listar-horario-atendimento")
+    extra_context = {"titulo": "Excluir Horário de Atendimento"}
+    login_url = "/protocolo/login/"
+
+class HorarioAtendimentoList(LoginRequiredMixin, TenantMixin, ListView):
+    template_name = "protocolos/listas/horario_atendimento.html"
+    model = HorarioAtendimento
+    login_url = "/protocolo/login/"
+
+# Agendamento
+class AgendamentoCreate(LoginRequiredMixin, TenantMixin, CreateView):
+    template_name = "protocolos/form.html"
+    model = Agendamento
+    form_class = AgendamentoForm
+    success_url = reverse_lazy("listar-agendamento")
+    extra_context = {"titulo": "Cadastro de Agendamento"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        tenant = self.get_tenant()
+        form.fields['cliente'].queryset = Cliente.objects.filter(tenant=tenant)
+        form.fields['empresa'].queryset = Empresa.objects.filter(tenant=tenant)
+        form.fields['servico'].queryset = Servico.objects.filter(tenant=tenant)
+        form.fields['atendente'].queryset = Atendente.objects.filter(tenant=tenant)
+        return form
+
+class AgendamentoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+    template_name = "protocolos/form.html"
+    model = Agendamento
+    form_class = AgendamentoForm
+    success_url = reverse_lazy("listar-agendamento")
+    extra_context = {"titulo": "Atualizar Agendamento"}
+    login_url = "/protocolo/login/"
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        tenant = self.get_tenant()
+        form.fields['cliente'].queryset = Cliente.objects.filter(tenant=tenant)
+        form.fields['empresa'].queryset = Empresa.objects.filter(tenant=tenant)
+        form.fields['servico'].queryset = Servico.objects.filter(tenant=tenant)
+        form.fields['atendente'].queryset = Atendente.objects.filter(tenant=tenant)
+        return form
+
+class AgendamentoDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = Agendamento
+    success_url = reverse_lazy("listar-agendamento")
+    extra_context = {"titulo": "Excluir Agendamento"}
+    login_url = "/protocolo/login/"
+
+class AgendamentoList(LoginRequiredMixin, TenantMixin, ListView):
+    template_name = "protocolos/listas/agendamento.html"
+    model = Agendamento
+    login_url = "/protocolo/login/"
 
 # Movimento: Progredir Status do Agendamento
-class ProgredirStatusAgendamentoView(View):
+class ProgredirStatusAgendamentoView(LoginRequiredMixin, TenantMixin, View):
+    login_url = "/protocolo/login/"
     STATUS_PROXIMO = {
         StatusAgendamento.PENDENTE: StatusAgendamento.CONFIRMADO,
         StatusAgendamento.CONFIRMADO: StatusAgendamento.CONCLUIDO,
@@ -24,7 +449,8 @@ class ProgredirStatusAgendamentoView(View):
     }
 
     def post(self, request, pk):
-        agendamento = get_object_or_404(Agendamento, pk=pk)
+        tenant = self.get_tenant()
+        agendamento = get_object_or_404(Agendamento, pk=pk, tenant=tenant)
         status_atual = agendamento.status
         proximo_status = self.STATUS_PROXIMO.get(status_atual)
         if proximo_status:
@@ -35,241 +461,13 @@ class ProgredirStatusAgendamentoView(View):
             messages.warning(request, "Ação não permitida para o status atual.")
         return redirect("listar-agendamento")
 
-# Empresa
-class EmpresaCreate(CreateView):
-    template_name = "protocolos/empresa-form.html"
-    model = Empresa
-    form_class = EmpresaForm
-    success_url = reverse_lazy("listar-empresa")
-    extra_context = {"titulo": "Cadastro de Empresa"}
-
-class EmpresaUpdate(UpdateView):
-    template_name = "protocolos/empresa-form.html"
-    model = Empresa
-    form_class = EmpresaForm
-    success_url = reverse_lazy("listar-empresa")
-    extra_context = {"titulo": "Atualizar Empresa"}
-    extra_context = {"titulo": "Atualizar Empresa"}
-
-class EmpresaDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = Empresa
-    success_url = reverse_lazy("listar-empresa")
-    extra_context = {"titulo": "Excluir Empresa"}
-
-class EmpresaList(ListView):
-    template_name = "protocolos/listas/empresa.html"
-    model = Empresa
-
-# Cliente
-class ClienteCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Cliente
-    fields = ["nome", "email", "telefone", "cpf"]
-    success_url = reverse_lazy("listar-cliente")
-    extra_context = {"titulo": "Cadastro de Cliente"}
-
-class ClienteUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Cliente
-    fields = ["nome", "email", "telefone", "cpf"]
-    success_url = reverse_lazy("listar-cliente")
-    extra_context = {"titulo": "Atualizar Cliente"}
-
-class ClienteDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = Cliente
-    success_url = reverse_lazy("listar-cliente")
-    extra_context = {"titulo": "Excluir Cliente"}
-
-class ClienteList(ListView):
-    template_name = "protocolos/listas/cliente.html"
-    model = Cliente
-
-# Atendente
-class AtendenteCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Atendente
-    fields = ["empresa", "nome", "especialidades"]  # Corrigido
-    success_url = reverse_lazy("listar-atendente")
-    extra_context = {"titulo": "Cadastro de Atendente"}
-
-class AtendenteUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Atendente
-    fields = ["empresa", "nome", "especialidades"]  # Corrigido
-    success_url = reverse_lazy("listar-atendente")
-    extra_context = {"titulo": "Atualizar Atendente"}
-
-class AtendenteDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = Atendente
-    success_url = reverse_lazy("listar-atendente")
-    extra_context = {"titulo": "Excluir Atendente"}
-
-class AtendenteList(ListView):
-    template_name = "protocolos/listas/atendente.html"
-    model = Atendente
-
-# Endereco
-class EnderecoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Endereco
-    fields = ["rua", "numero", "bairro", "cidade", "cep"]
-    success_url = reverse_lazy("listar-endereco")
-    extra_context = {"titulo": "Cadastro de Endereço"}
-
-class EnderecoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Endereco
-    fields = ["rua", "numero", "bairro", "cidade", "cep"]
-    success_url = reverse_lazy("listar-endereco")
-    extra_context = {"titulo": "Atualizar Endereço"}
-
-class EnderecoDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = Endereco
-    success_url = reverse_lazy("listar-endereco")
-    extra_context = {"titulo": "Excluir Endereço"}
-
-class EnderecoList(ListView):
-    template_name = "protocolos/listas/endereco.html"
-    model = Endereco
-
-# HorarioFuncionamento
-class HorarioFuncionamentoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = HorarioFuncionamento
-    fields = ["empresa", "diaSemana", "horaInicio", "horaFim"]
-    success_url = reverse_lazy("listar-horario-funcionamento")
-    extra_context = {"titulo": "Cadastro de Horário de Funcionamento"}
-
-class HorarioFuncionamentoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = HorarioFuncionamento
-    fields = ["empresa", "diaSemana", "horaInicio", "horaFim"]
-    success_url = reverse_lazy("listar-horario-funcionamento")
-    extra_context = {"titulo": "Atualizar Horário de Funcionamento"}
-
-class HorarioFuncionamentoDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = HorarioFuncionamento
-    success_url = reverse_lazy("listar-horario-funcionamento")
-    extra_context = {"titulo": "Excluir Horário de Funcionamento"}
-
-class HorarioFuncionamentoList(ListView):
-    template_name = "protocolos/listas/horario_funcionamento.html"
-    model = HorarioFuncionamento
-
-# CategoriaServico
-class CategoriaServicoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = CategoriaServico
-    fields = ["empresa", "nome", "descricao"]
-    success_url = reverse_lazy("listar-categoria-servico")
-    extra_context = {"titulo": "Cadastro de Categoria de Serviço"}
-
-class CategoriaServicoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = CategoriaServico
-    fields = ["empresa", "nome", "descricao"]
-    success_url = reverse_lazy("listar-categoria-servico")
-    extra_context = {"titulo": "Atualizar Categoria de Serviço"}
-
-class CategoriaServicoDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = CategoriaServico
-    success_url = reverse_lazy("listar-categoria-servico")
-    extra_context = {"titulo": "Excluir Categoria de Serviço"}
-
-class CategoriaServicoList(ListView):
-    template_name = "protocolos/listas/categoria_servico.html"
-    model = CategoriaServico
-
-# Servico
-class ServicoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Servico
-    fields = ["categoria", "nome", "descricao", "preco", "duracaoMinutos"]
-    success_url = reverse_lazy("listar-servico")
-    extra_context = {"titulo": "Cadastro de Serviço"}
-
-class ServicoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Servico
-    fields = ["categoria", "nome", "descricao", "preco", "duracaoMinutos"]
-    success_url = reverse_lazy("listar-servico")
-    extra_context = {"titulo": "Atualizar Serviço"}
-
-class ServicoDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = Servico
-    success_url = reverse_lazy("listar-servico")
-    extra_context = {"titulo": "Excluir Serviço"}
-
-class ServicoList(ListView):
-    template_name = "protocolos/listas/servico.html"
-    model = Servico
-
-# HorarioAtendimento
-class HorarioAtendimentoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = HorarioAtendimento
-    fields = ["atendente", "diaSemana", "horaInicio", "horaFim"]
-    success_url = reverse_lazy("listar-horario-atendimento")
-    extra_context = {"titulo": "Cadastro de Horário de Atendimento"}
-
-class HorarioAtendimentoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = HorarioAtendimento
-    fields = ["atendente", "diaSemana", "horaInicio", "horaFim"]
-    success_url = reverse_lazy("listar-horario-atendimento")
-    extra_context = {"titulo": "Atualizar Horário de Atendimento"}
-
-class HorarioAtendimentoDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = HorarioAtendimento
-    success_url = reverse_lazy("listar-horario-atendimento")
-    extra_context = {"titulo": "Excluir Horário de Atendimento"}
-
-class HorarioAtendimentoList(ListView):
-    template_name = "protocolos/listas/horario_atendimento.html"
-    model = HorarioAtendimento
-
-# Agendamento
-class AgendamentoCreate(CreateView):
-    template_name = "protocolos/form.html"
-    model = Agendamento
-    form_class = AgendamentoForm  # Usar o form customizado
-    success_url = reverse_lazy("listar-agendamento")
-    extra_context = {"titulo": "Cadastro de Agendamento"}
-
-class AgendamentoUpdate(UpdateView):
-    template_name = "protocolos/form.html"
-    model = Agendamento
-    form_class = AgendamentoForm  # Usar o form customizado
-    success_url = reverse_lazy("listar-agendamento")
-    extra_context = {"titulo": "Atualizar Agendamento"}
-
-class AgendamentoDelete(DeleteView):
-    template_name = "protocolos/form-excluir.html"
-    model = Agendamento
-    success_url = reverse_lazy("listar-agendamento")
-    extra_context = {"titulo": "Excluir Agendamento"}
-
-class AgendamentoList(ListView):
-    template_name = "protocolos/listas/agendamento.html"
-    model = Agendamento
-
-
-# View específica para cadastro público de clientes
+# View específica para cadastro público de clientes (mantida sem tenant)
 class ClienteCreatePublico(CreateView):
     template_name = "protocolos/cadastro-cliente-publico.html"
     model = Cliente
     fields = ["nome", "email", "telefone", "cpf"]
     success_url = reverse_lazy("index")
     extra_context = {"titulo": "Cadastro de Cliente"}
-
 
 def custom_logout(request):
     """View customizada para logout com mensagem de confirmação"""

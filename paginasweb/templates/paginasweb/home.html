@@ -7,7 +7,8 @@
     <h1 class="display-5 fw-bolder mb-4">
         <span class="text-gradient d-inline">Bem-vindo, {{ user.username }}!</span>
     </h1>
-    <p class="lead">Painel de controle do sistema NAES</p>
+    <p class="lead">{{ tenant.nome }}</p>
+    <div class="badge bg-primary">ID do Site: {{ tenant.slug }}</div>
 </div>
 {% endblock header %}
 
@@ -31,20 +32,41 @@
         border-radius: 50%;
         margin: 0 auto 1rem;
     }
+    .tenant-info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+    }
 </style>
 
 <div class="container">
-    <!-- Informações do usuário -->
+    <!-- Informações do Tenant -->
     <div class="row mb-5">
         <div class="col-12">
-            <div class="card card-hover">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Informações do Usuário</h5>
-                    <p class="card-text">
-                        <strong>Usuário:</strong> {{ user.username }}<br>
+            <div class="card tenant-info-card">
+                <div class="card-body text-center p-4">
+                    <h5 class="card-title">🏢 Seu Espaço Privado</h5>
+                    <p class="card-text mb-3">
+                        <strong>Organização:</strong> {{ tenant.nome }}<br>
+                        <strong>ID Único:</strong> {{ tenant.slug }}<br>
+                        <strong>Usuário:</strong> {{ user.get_full_name|default:user.username }}<br>
                         <strong>Email:</strong> {{ user.email|default:"Não informado" }}<br>
-                        <strong>Último acesso:</strong> {{ user.last_login|date:"d/m/Y H:i"|default:"Primeiro acesso" }}
+                        <strong>Criado em:</strong> {{ tenant.criado_em|date:"d/m/Y" }}
                     </p>
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h3 class="text-white">{{ stats.empresas }}</h3>
+                            <small>Empresa{{ stats.empresas|pluralize }}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-white">{{ stats.clientes }}</h3>
+                            <small>Cliente{{ stats.clientes|pluralize }}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="text-white">{{ stats.agendamentos }}</h3>
+                            <small>Agendamento{{ stats.agendamentos|pluralize }}</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -60,7 +82,7 @@
                         <i class="fas fa-building fa-2x"></i>
                     </div>
                     <h5 class="card-title">Empresas</h5>
-                    <p class="card-text">Gerencie empresas parceiras do sistema</p>
+                    <p class="card-text">Gerencie suas empresas</p>
                     <div class="d-grid gap-2">
                         <a href="{% url 'cadastrar-empresa' %}" class="btn btn-outline-primary btn-sm">Cadastrar</a>
                         <a href="{% url 'listar-empresa' %}" class="btn btn-outline-secondary btn-sm">Listar</a>
@@ -77,7 +99,7 @@
                         <i class="fas fa-users fa-2x"></i>
                     </div>
                     <h5 class="card-title">Clientes</h5>
-                    <p class="card-text">Gerencie clientes da plataforma</p>
+                    <p class="card-text">Gerencie seus clientes</p>
                     <div class="d-grid gap-2">
                         <a href="{% url 'cadastrar-cliente' %}" class="btn btn-outline-success btn-sm">Cadastrar</a>
                         <a href="{% url 'listar-cliente' %}" class="btn btn-outline-secondary btn-sm">Listar</a>
@@ -91,10 +113,10 @@
             <div class="card card-hover h-100">
                 <div class="card-body text-center">
                     <div class="icon-box bg-info text-white">
-                        <i class="fas fa-cogs fa-2x"></i>
+                        <i class="fas fa-concierge-bell fa-2x"></i>
                     </div>
                     <h5 class="card-title">Serviços</h5>
-                    <p class="card-text">Configure serviços e categorias</p>
+                    <p class="card-text">Configure seus serviços</p>
                     <div class="d-grid gap-2">
                         <a href="{% url 'cadastrar-servico' %}" class="btn btn-outline-info btn-sm">Cadastrar</a>
                         <a href="{% url 'listar-servico' %}" class="btn btn-outline-secondary btn-sm">Listar</a>
@@ -111,7 +133,7 @@
                         <i class="fas fa-user-tie fa-2x"></i>
                     </div>
                     <h5 class="card-title">Atendentes</h5>
-                    <p class="card-text">Gerencie profissionais atendentes</p>
+                    <p class="card-text">Gerencie seus atendentes</p>
                     <div class="d-grid gap-2">
                         <a href="{% url 'cadastrar-atendente' %}" class="btn btn-outline-warning btn-sm">Cadastrar</a>
                         <a href="{% url 'listar-atendente' %}" class="btn btn-outline-secondary btn-sm">Listar</a>
@@ -145,10 +167,10 @@
                         <i class="fas fa-tools fa-2x"></i>
                     </div>
                     <h5 class="card-title">Configurações</h5>
-                    <p class="card-text">Configurações do sistema</p>
+                    <p class="card-text">Configurações do seu site</p>
                     <div class="d-grid gap-2">
-                        <a href="{% url 'cadastrar-endereco' %}" class="btn btn-outline-secondary btn-sm">Endereços</a>
                         <a href="{% url 'cadastrar-categoria-servico' %}" class="btn btn-outline-secondary btn-sm">Categorias</a>
+                        <a href="{% url 'cadastrar-horario-funcionamento' %}" class="btn btn-outline-secondary btn-sm">Horários</a>
                     </div>
                 </div>
             </div>
@@ -163,13 +185,31 @@
                     <h5 class="card-title">Ações Rápidas</h5>
                     <div class="d-flex justify-content-center gap-3 flex-wrap">
                         <a href="{% url 'index' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-home"></i> Página Inicial
+                            <i class="fas fa-home"></i> Página Pública
+                        </a>
+                        <a href="{% url 'escolher-cadastro' %}" class="btn btn-outline-info">
+                            <i class="fas fa-list"></i> Ver Todas as Listas
                         </a>
                         <a href="{% url 'logout' %}" class="btn btn-outline-danger">
                             <i class="fas fa-sign-out-alt"></i> Sair
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informações do Sistema Multi-Tenant -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h6 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>Sistema Multi-Tenant Ativo
+                </h6>
+                <p class="mb-0">
+                    <strong>Isolamento de Dados:</strong> Todos os seus dados (empresas, clientes, agendamentos, etc.) estão completamente isolados em seu próprio espaço privado (ID: <code>{{ tenant.slug }}</code>). 
+                    Outros usuários do sistema não têm acesso aos seus dados e você não vê os dados deles.
+                </p>
             </div>
         </div>
     </div>

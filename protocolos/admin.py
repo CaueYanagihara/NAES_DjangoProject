@@ -1,10 +1,17 @@
 from django.contrib import admin
-from .models import Empresa, Cliente, Endereco, HorarioFuncionamento, CategoriaServico, Servico, Atendente, HorarioAtendimento, Agendamento
+from .models import Tenant, Empresa, Cliente, HorarioFuncionamento, CategoriaServico, Servico, Atendente, HorarioAtendimento, Agendamento
+
+@admin.register(Tenant)
+class TenantAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'slug', 'owner', 'ativo', 'criado_em']
+    list_filter = ['ativo', 'criado_em']
+    search_fields = ['nome', 'slug', 'owner__username']
+    readonly_fields = ['criado_em', 'atualizado_em']
+    prepopulated_fields = {"slug": ("nome",)}
 
 # Register your models here.
 admin.site.register(Empresa)
 admin.site.register(Cliente)
-admin.site.register(Endereco)
 admin.site.register(HorarioFuncionamento)
 admin.site.register(CategoriaServico)
 admin.site.register(Servico)

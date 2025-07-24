@@ -2,20 +2,36 @@
 
 {% load static %}
 
+{% block header %}
+<div class="text-center">
+    <div class="fs-3 fw-light text-muted">Bem-vindo ao sistema NAES</div>
+    <h1 class="display-3 fw-bolder mb-5"><span class="text-gradient d-inline">Seu tempo, seu jeito!</span></h1>
+    <p class="lead mb-5">Sistema de agendamento online para facilitar sua vida e otimizar seu tempo</p>
+</div>
+{% endblock header %}
+
 {% block conteudo %}
-<div class="row">
+<div class="row align-items-center">
     <div class="col-lg-6">
-        <div class="text-center my-3">
-            <h2 class="display-5 fw-bolder"><span class="text-gradient d-inline">Sistema NAES 2025</span></h2>
-            <p class="lead fw-light mb-4">Plataforma completa para gestão de agendamentos e serviços.</p>
-            <p class="text-muted">Gerencie empresas, clientes, atendentes e agendamentos em um só lugar!</p>
-            <div class="d-flex justify-content-center gap-3 mt-4">
-                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-sign-in-alt me-2"></i>Fazer Login
+        <div class="text-center text-lg-start">
+            <h2 class="display-6 fw-bolder mb-4">Faça seu agendamento online!</h2>
+            <p class="lead mb-4">
+                Com nosso sistema você pode agendar serviços de forma rápida e prática, 
+                escolhendo o melhor horário que se adequa à sua rotina.
+            </p>
+            <div class="d-grid gap-3 d-md-flex justify-content-center justify-content-lg-start mb-3">
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4 me-md-2">
+                    <i class="fas fa-sign-in-alt me-2"></i>Entrar
                 </a>
-                <a href="{% url 'cadastrar-usuario' %}" class="btn btn-outline-primary btn-lg">
+                <a href="{% url 'cadastrar-usuario' %}" class="btn btn-success btn-lg px-4">
                     <i class="fas fa-user-plus me-2"></i>Criar Conta
                 </a>
+            </div>
+            <div class="text-center text-lg-start mt-4">
+                <small class="text-muted">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Seus dados estão seguros conosco
+                </small>
             </div>
         </div>
     </div>

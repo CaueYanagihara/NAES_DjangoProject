@@ -1,0 +1,251 @@
+{% extends "paginasweb/modelos/index.html" %}
+
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">{{ titulo }}</span>
+    </h1>
+    <p class="lead">Cadastrar atendente como usuário do sistema</p>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        border: none;
+    }
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    .section-title {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .password-info {
+        background-color: #e7f3ff;
+        border-left: 4px solid #007bff;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .checkbox-group {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card form-container">
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                <i class="fas fa-info-circle me-2"></i>{{ message|safe }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Informações Básicas -->
+                        <div class="section-title">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user me-2"></i>Informações do Atendente
+                            </h5>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nome.id_for_label }}" class="form-label fw-bold">
+                                    Nome Completo *
+                                </label>
+                                {{ form.nome }}
+                                {% if form.nome.errors %}
+                                    <div class="text-danger small mt-1">{{ form.nome.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">
+                                    Email (Login) *
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">{{ form.email.help_text }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.telefone.id_for_label }}" class="form-label fw-bold">
+                                    Telefone
+                                </label>
+                                {{ form.telefone }}
+                                {% if form.telefone.errors %}
+                                    <div class="text-danger small mt-1">{{ form.telefone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.empresa.id_for_label }}" class="form-label fw-bold">
+                                    Empresa *
+                                </label>
+                                {{ form.empresa }}
+                                {% if form.empresa.errors %}
+                                    <div class="text-danger small mt-1">{{ form.empresa.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Especialidades -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Especialidades *</label>
+                            <div class="checkbox-group">
+                                {{ form.especialidades }}
+                                {% if form.especialidades.errors %}
+                                    <div class="text-danger small mt-1">{{ form.especialidades.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text mt-2">{{ form.especialidades.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Configuração de Senha -->
+                        <div class="section-title">
+                            <h5 class="mb-0">
+                                <i class="fas fa-key me-2"></i>Configuração de Acesso ao Sistema
+                            </h5>
+                        </div>
+
+                        <div class="password-info">
+                            <h6 class="text-primary mb-2">
+                                <i class="fas fa-info-circle me-2"></i>Informações Importantes
+                            </h6>
+                            <ul class="mb-0 small">
+                                <li>O atendente receberá acesso completo ao sistema</li>
+                                <li>Poderá fazer login usando o email cadastrado</li>
+                                <li>Terá acesso aos dados do mesmo tenant (organização)</li>
+                                <li>Poderá gerenciar agendamentos e outros dados</li>
+                            </ul>
+                        </div>
+
+                        <!-- Opção de senha automática -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.gerar_senha_automatica }}
+                                <label class="form-check-label fw-bold" for="{{ form.gerar_senha_automatica.id_for_label }}">
+                                    Gerar senha automática e segura
+                                </label>
+                            </div>
+                            <div class="form-text">{{ form.gerar_senha_automatica.help_text }}</div>
+                        </div>
+
+                        <!-- Campos de senha manual (ocultos quando automática está marcada) -->
+                        <div id="senha-manual-fields">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.senha.id_for_label }}" class="form-label fw-bold">
+                                        Senha *
+                                    </label>
+                                    {{ form.senha }}
+                                    {% if form.senha.errors %}
+                                        <div class="text-danger small mt-1">{{ form.senha.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.senha.help_text }}</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.confirmar_senha.id_for_label }}" class="form-label fw-bold">
+                                        Confirmar Senha *
+                                    </label>
+                                    {{ form.confirmar_senha }}
+                                    {% if form.confirmar_senha.errors %}
+                                        <div class="text-danger small mt-1">{{ form.confirmar_senha.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.confirmar_senha.help_text }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Erros gerais do formulário -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Botões -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-user-plus me-2"></i>Cadastrar Atendente
+                            </button>
+                            <a href="{% url 'listar-atendente' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxAutomatica = document.getElementById('{{ form.gerar_senha_automatica.id_for_label }}');
+    const senhaManualFields = document.getElementById('senha-manual-fields');
+    const senhaField = document.getElementById('{{ form.senha.id_for_label }}');
+    const confirmarSenhaField = document.getElementById('{{ form.confirmar_senha.id_for_label }}');
+    
+    function toggleSenhaFields() {
+        if (checkboxAutomatica.checked) {
+            senhaManualFields.style.display = 'none';
+            senhaField.required = false;
+            confirmarSenhaField.required = false;
+        } else {
+            senhaManualFields.style.display = 'block';
+            senhaField.required = true;
+            confirmarSenhaField.required = true;
+        }
+    }
+    
+    // Configurar estado inicial
+    toggleSenhaFields();
+    
+    // Escutar mudanças no checkbox
+    checkboxAutomatica.addEventListener('change', toggleSenhaFields);
+    
+    // Validação em tempo real das senhas
+    function validatePasswords() {
+        if (senhaField.value && confirmarSenhaField.value && !checkboxAutomatica.checked) {
+            if (senhaField.value === confirmarSenhaField.value) {
+                confirmarSenhaField.classList.remove('is-invalid');
+                confirmarSenhaField.classList.add('is-valid');
+            } else {
+                confirmarSenhaField.classList.remove('is-valid');
+                confirmarSenhaField.classList.add('is-invalid');
+            }
+        } else {
+            confirmarSenhaField.classList.remove('is-valid', 'is-invalid');
+        }
+    }
+    
+    senhaField.addEventListener('input', validatePasswords);
+    confirmarSenhaField.addEventListener('input', validatePasswords);
+});
+</script>
+{% endblock conteudo %}

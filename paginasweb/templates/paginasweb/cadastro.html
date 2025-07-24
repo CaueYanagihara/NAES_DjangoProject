@@ -6,27 +6,228 @@
 {% block header %}
 <div class="text-center">
     <h1 class="display-6 fw-bolder mb-4">
-        <span class="text-gradient d-inline">Cadastro de Usuário</span>
+        <span class="text-gradient d-inline">{{ titulo|default:"Cadastro de Usuário" }}</span>
     </h1>
+    <p class="lead">Crie sua conta para acessar o sistema NAES</p>
 </div>
 {% endblock header %}
 
 {% block conteudo %}
 <style>
-    form {
-        font-size: 120%;
+    .cadastro-card {
+        max-width: 600px;
+        margin: 0 auto;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        border: none;
+    }
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    .password-requirements {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .btn-register {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+        padding: 12px 30px;
+        font-weight: bold;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+    }
+    .success-message {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
     }
 </style>
-<div class="row justify-content-center">
-    <div class="col-lg-6">
-        <form method="post">
-            {% csrf_token %}
-            {{ form|crispy }}
-            <p class="text-center">
-                <button type="submit" class="btn btn-success m-2">Cadastrar</button>
-                <a href="{% url 'login' %}" class="btn btn-outline-dark m-2">Voltar</a>
-            </p>
-        </form>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card cadastro-card">
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="success-message">
+                                <i class="fas fa-check-circle me-2"></i>{{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Informações Pessoais -->
+                        <div class="mb-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-user me-2"></i>Informações Pessoais
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label fw-bold">
+                                        Primeiro Nome *
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label fw-bold">
+                                        Sobrenome *
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label fw-bold">
+                                    E-mail *
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Usaremos seu e-mail apenas para comunicações importantes do sistema.</div>
+                            </div>
+                        </div>
+
+                        <!-- Dados de Acesso -->
+                        <div class="mb-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-key me-2"></i>Dados de Acesso
+                            </h5>
+                            <div class="mb-3">
+                                <label for="{{ form.username.id_for_label }}" class="form-label fw-bold">
+                                    Nome de Usuário *
+                                </label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">{{ form.username.help_text }}</div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label fw-bold">
+                                        Senha *
+                                    </label>
+                                    {{ form.password1 }}
+                                    {% if form.password1.errors %}
+                                        <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label fw-bold">
+                                        Confirmar Senha *
+                                    </label>
+                                    {{ form.password2 }}
+                                    {% if form.password2.errors %}
+                                        <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Requisitos da Senha -->
+                        <div class="password-requirements">
+                            <h6 class="text-primary mb-2">
+                                <i class="fas fa-shield-alt me-2"></i>Requisitos da Senha
+                            </h6>
+                            {{ form.password1.help_text|safe }}
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-register btn-lg me-3">
+                                <i class="fas fa-user-plus me-2"></i>Criar Conta
+                            </button>
+                            <a href="{% url 'index' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Voltar
+                            </a>
+                        </div>
+
+                        <!-- Links úteis -->
+                        <div class="text-center mt-4 pt-3 border-top">
+                            <p class="text-muted mb-2">Já tem uma conta?</p>
+                            <a href="{% url 'login' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Fazer Login
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Informações adicionais -->
+            <div class="text-center mt-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Informações Importantes
+                        </h6>
+                        <div class="row text-start">
+                            <div class="col-md-4 mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-lock me-1 text-success"></i>
+                                    Seus dados são protegidos e seguros
+                                </small>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-envelope me-1 text-info"></i>
+                                    Não enviamos spam
+                                </small>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1 text-warning"></i>
+                                    Cadastro instantâneo
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+// Validação em tempo real
+document.addEventListener('DOMContentLoaded', function() {
+    const password1 = document.getElementById('{{ form.password1.id_for_label }}');
+    const password2 = document.getElementById('{{ form.password2.id_for_label }}');
+    
+    function validatePasswords() {
+        if (password1.value && password2.value) {
+            if (password1.value === password2.value) {
+                password2.classList.remove('is-invalid');
+                password2.classList.add('is-valid');
+            } else {
+                password2.classList.remove('is-valid');
+                password2.classList.add('is-invalid');
+            }
+        }
+    }
+    
+    password1.addEventListener('input', validatePasswords);
+    password2.addEventListener('input', validatePasswords);
+});
+</script>
 {% endblock conteudo %}

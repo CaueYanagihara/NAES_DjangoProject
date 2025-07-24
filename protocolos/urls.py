@@ -4,19 +4,19 @@ from django.contrib.auth.forms import UserCreationForm
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 from . import views
+from .forms import CustomUserCreationForm
 
-# Importar suas views
+# Importar suas views (removendo EnderecoCreate, EnderecoUpdate, EnderecoDelete, EnderecoList)
 from .views import (
     EmpresaCreate, EmpresaUpdate, EmpresaDelete, EmpresaList,
     ClienteCreate, ClienteUpdate, ClienteDelete, ClienteList, ClienteCreatePublico,
-    EnderecoCreate, EnderecoUpdate, EnderecoDelete, EnderecoList,
     HorarioFuncionamentoCreate, HorarioFuncionamentoUpdate, HorarioFuncionamentoDelete, HorarioFuncionamentoList,
     CategoriaServicoCreate, CategoriaServicoUpdate, CategoriaServicoDelete, CategoriaServicoList,
     ServicoCreate, ServicoUpdate, ServicoDelete, ServicoList,
     AtendenteCreate, AtendenteUpdate, AtendenteDelete, AtendenteList,
     HorarioAtendimentoCreate, HorarioAtendimentoUpdate, HorarioAtendimentoDelete, HorarioAtendimentoList,
     AgendamentoCreate, AgendamentoUpdate, AgendamentoDelete, AgendamentoList,
-    ProgredirStatusAgendamentoView,
+    ProgredirStatusAgendamentoView, CustomUserCreateView,
 )
 
 urlpatterns = [
@@ -31,12 +31,6 @@ urlpatterns = [
     path('cliente/editar/<uuid:pk>/', ClienteUpdate.as_view(), name='editar-cliente'),
     path('cliente/excluir/<uuid:pk>/', ClienteDelete.as_view(), name='excluir-cliente'),
     path('cliente/listar/', ClienteList.as_view(), name='listar-cliente'),
-
-    # Endereco
-    path('endereco/cadastrar/', EnderecoCreate.as_view(), name='cadastrar-endereco'),
-    path('endereco/editar/<int:pk>/', EnderecoUpdate.as_view(), name='editar-endereco'),
-    path('endereco/excluir/<int:pk>/', EnderecoDelete.as_view(), name='excluir-endereco'),
-    path('endereco/listar/', EnderecoList.as_view(), name='listar-endereco'),
 
     # HorarioFuncionamento
     path('horario-funcionamento/cadastrar/', HorarioFuncionamentoCreate.as_view(), name='cadastrar-horario-funcionamento'),
@@ -79,12 +73,8 @@ urlpatterns = [
     path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', views.custom_logout, name='logout'),
 
-    # Cadastro de usuário do sistema (autenticação)
-    path('cadastrar-usuario/', CreateView.as_view(
-        template_name='paginasweb/cadastro.html',
-        form_class=UserCreationForm,
-        success_url=reverse_lazy('login')
-    ), name='cadastrar-usuario'),
+    # Cadastro de usuário do sistema (autenticação) - MELHORADO COM VIEW CUSTOMIZADA
+    path('cadastrar-usuario/', CustomUserCreateView.as_view(), name='cadastrar-usuario'),
 
     # Cadastro de cliente da loja (entidade de negócio)
     path('cadastrar/', ClienteCreatePublico.as_view(), name='cadastrar-cliente-publico'),

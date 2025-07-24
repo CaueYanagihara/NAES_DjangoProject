@@ -141,3 +141,14 @@ LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "index"
 
 # AUTH_USER_MODEL = "protocolos.Cliente"
+
+# Configuração para usar email como username
+AUTHENTICATION_BACKENDS = [
+    'protocolos.backends.EmailBackend',  # Backend customizado para email
+    'django.contrib.auth.backends.ModelBackend',  # Backend padrão como fallback
+]
+
+# Configurar login com email
+LOGIN_URL = '/protocolo/login/'
+LOGIN_REDIRECT_URL = '/home/'
+LOGOUT_REDIRECT_URL = '/'

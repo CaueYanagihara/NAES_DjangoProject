@@ -29,7 +29,14 @@
             <!-- Navigation-->
             <nav class="navbar navbar-expand-lg navbar-light bg-white py-3 fixed-top shadow-sm">
                 <div class="container px-5">
-                    <a class="navbar-brand" href="{% url 'index' %}">
+                    <!-- Botão de menu lateral (apenas para usuários autenticados) -->
+                    {% if user.is_authenticated %}
+                    <button class="btn btn-outline-primary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                        <i class="fas fa-bars"></i> Menu
+                    </button>
+                    {% endif %}
+                    
+                    <a class="navbar-brand" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'index' %}{% endif %}">
                         <span class="fw-bolder text-primary">NAES 2025</span>
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
@@ -56,6 +63,31 @@
                     </div>
                 </div>
             </nav>
+
+            <!-- Barra lateral (Offcanvas) -->
+            {% if user.is_authenticated %}
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="sidebarMenuLabel">
+                        <i class="fas fa-user-circle me-2"></i>{{ user.username }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <div class="nav nav-pills flex-column">
+                        <h6 class="text-muted text-uppercase fw-bold mt-3 mb-2">
+                            <i class="fas fa-cog me-2"></i>Administração
+                        </h6>
+                        <a class="nav-link text-dark mb-2" href="{% url 'escolher-cadastro' %}">
+                            <i class="fas fa-plus-circle me-2 text-primary"></i>Cadastros
+                        </a>
+                        <!-- Espaço para futuras opções -->
+                        <hr class="my-3">
+                        <small class="text-muted">Mais opções serão adicionadas aqui</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
             {% endblock menu %}
             <!-- Header-->
             <header class="py-4 mt-5">
