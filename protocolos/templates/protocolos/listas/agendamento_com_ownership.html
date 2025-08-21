@@ -1,0 +1,170 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Lista de Agendamentos</span>
+    </h1>
+    <p class="lead fw-light mb-4">Gerencie seus agendamentos</p>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<div class="container px-5">
+    <div class="row gx-5 justify-content-center">
+        <div class="col-lg-12">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📅 Agendamentos</h5>
+                    <a href="{% url 'cadastrar-agendamento' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Novo Agendamento
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if object_list %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Serviço</th>
+                                        <th>Atendente</th>
+                                        <th>Data/Hora</th>
+                                        <th>Status</th>
+                                        <th>Criado por</th>
+                                        <th>Acesso</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for agendamento in object_list %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ agendamento.cliente.nome }}</strong>
+                                                {% if agendamento.cliente.email == user.email %}
+                                                    <br><small class="text-success">Seu agendamento</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ agendamento.servico.nome }}
+                                                <br><small class="text-muted">{{ agendamento.empresa.nome }}</small>
+                                            </td>
+                                            <td>{{ agendamento.atendente.nome }}</td>
+                                            <td>
+                                                {{ agendamento.dataHoraInicio|date:"d/m/Y" }}
+                                                <br><small class="text-muted">{{ agendamento.dataHoraInicio|date:"H:i" }} - {{ agendamento.dataHoraFim|date:"H:i" }}</small>
+                                            </td>
+                                            <td>
+                                                {% if agendamento.status == 'pendente' %}
+                                                    <span class="badge bg-warning">⏳ Pendente</span>
+                                                {% elif agendamento.status == 'confirmado' %}
+                                                    <span class="badge bg-info">✅ Confirmado</span>
+                                                {% elif agendamento.status == 'concluido' %}
+                                                    <span class="badge bg-success">🎉 Concluído</span>
+                                                {% elif agendamento.status == 'cancelado' %}
+                                                    <span class="badge bg-danger">❌ Cancelado</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if agendamento.created_by %}
+                                                    <small class="text-muted">
+                                                        {% if agendamento.created_by == user %}
+                                                            <strong class="text-success">Você</strong>
+                                                        {% else %}
+                                                            {{ agendamento.created_by.get_full_name|default:agendamento.created_by.username }}
+                                                        {% endif %}
+                                                    </small>
+                                                {% else %}
+                                                    <small class="text-muted">Sistema</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if agendamento.created_by == user %}
+                                                    <span class="badge bg-success">Criador</span>
+                                                {% elif agendamento.cliente.email == user.email %}
+                                                    <span class="badge bg-primary">Cliente</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Visualização</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group" role="group">
+                                                    <!-- Botão Editar - só aparece se o usuário pode editar -->
+                                                    {% if user.is_superuser or user.groups.filter.name__in:"Administradores,Gerentes,Atendentes" or agendamento.created_by == user or agendamento.cliente.email == user.email %}
+                                                        <a href="{% url 'editar-agendamento' agendamento.pk %}" 
+                                                           class="btn btn-sm btn-outline-primary" 
+                                                           title="Editar">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    
+                                                    <!-- Botão Excluir - só aparece se o usuário pode excluir -->
+                                                    {% if user.is_superuser or user.groups.filter.name__in:"Administradores,Gerentes" or agendamento.created_by == user %}
+                                                        <a href="{% url 'excluir-agendamento' agendamento.pk %}" 
+                                                           class="btn btn-sm btn-outline-danger" 
+                                                           title="Excluir"
+                                                           onclick="return confirm('Tem certeza que deseja excluir este agendamento?')">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    
+                                                    <!-- Botão Progredir Status -->
+                                                    {% if agendamento.status != 'concluido' and agendamento.status != 'cancelado' %}
+                                                        {% if user.groups.filter.name__in:"Administradores,Gerentes,Atendentes" or agendamento.created_by == user %}
+                                                            <form method="post" action="{% url 'progredir-status-agendamento' agendamento.pk %}" style="display: inline;">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn btn-sm btn-outline-success" 
+                                                                        title="{% if agendamento.status == 'pendente' %}Confirmar{% else %}Concluir{% endif %}">
+                                                                    {% if agendamento.status == 'pendente' %}
+                                                                        <i class="fas fa-check"></i>
+                                                                    {% else %}
+                                                                        <i class="fas fa-check-double"></i>
+                                                                    {% endif %}
+                                                                </button>
+                                                            </form>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">Nenhum agendamento encontrado</h4>
+                            <p class="text-muted">Comece criando seu primeiro agendamento!</p>
+                            <a href="{% url 'cadastrar-agendamento' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Criar Agendamento
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Informações sobre controle de acesso -->
+            <div class="mt-4">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle"></i> Controle de Acesso
+                    </h6>
+                    <small>
+                        {% if user.is_superuser %}
+                            <strong>Super Administrador:</strong> Você pode ver e modificar todos os agendamentos.
+                        {% elif user.groups.filter.name__in:"Administradores,Gerentes" %}
+                            <strong>{{ user.groups.first.name }}:</strong> Você pode ver e modificar todos os agendamentos da organização.
+                        {% elif user.groups.filter.name="Atendentes" %}
+                            <strong>Atendente:</strong> Você pode ver todos os agendamentos da organização e modificar os que você criou.
+                        {% else %}
+                            <strong>Usuário:</strong> Você pode ver agendamentos que você criou ou onde você é o cliente.
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock conteudo %}

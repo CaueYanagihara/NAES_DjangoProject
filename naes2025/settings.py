@@ -137,8 +137,26 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Configurações de redirecionamento após login
-LOGIN_REDIRECT_URL = "home"
-LOGOUT_REDIRECT_URL = "index"
+LOGIN_URL = '/protocolo/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+# Handlers de erro personalizados
+PERMISSION_DENIED_VIEW = 'protocolos.views.acesso_negado'
+
+# Configuração de middleware
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Middlewares personalizados (comentados para não causar problemas iniciais)
+    # 'protocolos.middleware.AuthenticationMiddleware',
+    # 'protocolos.middleware.TenantMiddleware',
+]
 
 # AUTH_USER_MODEL = "protocolos.Cliente"
 

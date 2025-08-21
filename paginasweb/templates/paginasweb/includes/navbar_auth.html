@@ -1,0 +1,50 @@
+<!-- Fragment da navbar com links de autenticação -->
+{% if user.is_authenticated %}
+    <!-- Usuário logado -->
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            👤 {{ user.get_full_name|default:user.username }}
+            {% if user.groups.exists %}
+                <span class="badge bg-primary ms-1">{{ user.groups.first.name }}</span>
+            {% endif %}
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+            <li><h6 class="dropdown-header">Minha Conta</h6></li>
+            <li><a class="dropdown-item" href="{% url 'perfil-usuario' %}">
+                ⚙️ Meu Perfil
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'escolher-cadastro' %}">
+                📋 Gerenciar Sistema
+            </a></li>
+            {% if user.groups.filter.name__in:"Administradores,Gerentes" or user.is_superuser %}
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header">Administração</h6></li>
+                <li><a class="dropdown-item" href="{% url 'listar-empresa' %}">
+                    🏢 Empresas
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'listar-atendente' %}">
+                    👨‍💼 Atendentes
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'listar-servico' %}">
+                    🛠️ Serviços
+                </a></li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'logout' %}">
+                🚪 Sair
+            </a></li>
+        </ul>
+    </li>
+{% else %}
+    <!-- Usuário não logado -->
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'login' %}">
+            🔐 Entrar
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link btn btn-primary text-white ms-2 px-3" href="{% url 'cadastro' %}">
+            👤 Cadastrar-se
+        </a>
+    </li>
+{% endif %}

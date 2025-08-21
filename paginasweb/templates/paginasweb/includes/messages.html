@@ -1,0 +1,31 @@
+<!-- Mensagens dinâmicas baseadas no status de autenticação -->
+{% if messages %}
+    <div class="container px-5 mt-3">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle me-2"></i>
+                {% elif message.tags == 'error' %}
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                {% else %}
+                    <i class="fas fa-info-circle me-2"></i>
+                {% endif %}
+                {{ message|safe }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Status do usuário (apenas para depuração/desenvolvimento) -->
+{% if user.is_authenticated %}
+    {% comment %}
+    <div class="container px-5">
+        <div class="alert alert-info">
+            <small>🔐 Logado como: <strong>{{ user.username }}</strong> | Email: {{ user.email }}</small>
+        </div>
+    </div>
+    {% endcomment %}
+{% endif %}

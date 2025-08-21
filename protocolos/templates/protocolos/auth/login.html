@@ -1,0 +1,135 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Entrar na Conta</span>
+    </h1>
+    <p class="lead fw-light mb-4">Acesse seu sistema de agendamentos</p>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<div class="container px-5 my-5">
+    <div class="row gx-5 justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header">
+                    <h3 class="text-center font-weight-light my-4">
+                        🔐 Login do Sistema
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message|safe }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-floating mb-3">
+                            {{ form.username }}
+                            <label for="{{ form.username.id_for_label }}">Usuário ou Email</label>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.username.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.password }}
+                            <label for="{{ form.password.id_for_label }}">Senha</label>
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="remember_me" id="rememberPasswordCheck">
+                            <label class="form-check-label" for="rememberPasswordCheck">
+                                Lembrar de mim
+                            </label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Entrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <div class="small">
+                        <a href="{% url 'cadastro' %}" class="text-decoration-none">
+                            👤 Não tem uma conta? Cadastre-se gratuitamente!
+                        </a>
+                    </div>
+                    <div class="small mt-2">
+                        <a href="{% url 'index' %}" class="text-muted">
+                            🏠 Voltar para página inicial
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações sobre o sistema -->
+            <div class="row mt-5">
+                <div class="col-lg-12">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">💡 Dica</h5>
+                            <p class="card-text">
+                                Se você é um <strong>novo usuário</strong>, clique em "Cadastre-se" para criar sua conta gratuitamente. 
+                                Você terá seu próprio sistema de agendamentos configurado automaticamente!
+                            </p>
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <i class="fas fa-user-plus fa-2x text-primary mb-2"></i>
+                                    <h6>Cadastro Rápido</h6>
+                                    <small class="text-muted">Apenas alguns campos obrigatórios</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <i class="fas fa-magic fa-2x text-success mb-2"></i>
+                                    <h6>Configuração Automática</h6>
+                                    <small class="text-muted">Seu sistema será criado automaticamente</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <i class="fas fa-rocket fa-2x text-info mb-2"></i>
+                                    <h6>Pronto para Usar</h6>
+                                    <small class="text-muted">Comece a agendar imediatamente</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Adicionar classes do Bootstrap aos campos do formulário
+document.addEventListener('DOMContentLoaded', function() {
+    const formFields = document.querySelectorAll('input[type="text"], input[type="password"], input[type="email"]');
+    formFields.forEach(field => {
+        field.classList.add('form-control');
+    });
+});
+</script>
+{% endblock conteudo %}

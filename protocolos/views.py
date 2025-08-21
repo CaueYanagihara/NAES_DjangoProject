@@ -2,16 +2,25 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views import View
 from django.views.generic.list import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.utils.text import slugify
+from django.db import models
 from .models import (
     Cliente, Atendente, Empresa, HorarioFuncionamento, CategoriaServico, 
     Servico, HorarioAtendimento, Agendamento, StatusAgendamento, Tenant
 )
 from .forms import AgendamentoForm, EmpresaForm, CustomUserCreationForm, AtendenteForm
+from .decorators import (
+    AdminOrManagerMixin, ManagerOnlyMixin, AtendenteMixin, 
+    ClienteAccessMixin, SuperuserRequiredMixin, ClienteOwnerMixin, 
+    AgendamentoOwnerMixin, OwnerRequiredMixin
+)
 from django.http import HttpResponseRedirect
 
 
@@ -24,9 +33,13 @@ class TenantMixin:
         if not self.request.user.is_authenticated:
             raise PermissionDenied("Usuário deve estar logado")
         
-        try:
-            return self.request.user.tenant
-        except Tenant.DoesNotExist:
+        # Usar a nova propriedade tenant
+        user_tenant = self.request.user.tenant
+        
+        if user_tenant:
+            return user_tenant
+        else:
+            # Se não tem tenant, criar um automaticamente
             return self.create_tenant_for_user()
     
     def create_tenant_for_user(self):
@@ -45,6 +58,10 @@ class TenantMixin:
             slug=slug,
             owner=user
         )
+        
+        # Associar tenant ao usuário
+        user.set_tenant(tenant)
+        
         return tenant
     
     def get_queryset(self):
@@ -61,7 +78,7 @@ class TenantMixin:
 
 # View customizada para cadastro de usuários com criação automática de tenant
 class CustomUserCreateView(CreateView):
-    template_name = 'paginasweb/cadastro.html'
+    template_name = 'protocolos/auth/cadastro.html'
     form_class = CustomUserCreationForm
     success_url = reverse_lazy('login')
     
@@ -83,23 +100,37 @@ class CustomUserCreateView(CreateView):
             slug = f"{base_slug}-{counter}"
             counter += 1
         
-        Tenant.objects.create(
+        tenant = Tenant.objects.create(
             nome=f"Organização de {user.get_full_name() or user.username}",
             slug=slug,
             owner=user
         )
         
+        # Associar tenant ao usuário através do profile
+        user.set_tenant(tenant)
+        
+        # Adicionar usuário ao grupo Administradores automaticamente
+        from django.contrib.auth.models import Group
+        try:
+            grupo_admin = Group.objects.get(name='Administradores')
+            user.groups.add(grupo_admin)
+        except Group.DoesNotExist:
+            # Se grupo não existe, criar e adicionar
+            grupo_admin = Group.objects.create(name='Administradores')
+            user.groups.add(grupo_admin)
+        
         messages.success(
             self.request, 
             f'Conta criada com sucesso! Seu espaço privado foi configurado automaticamente. '
-            'Agora você pode fazer login e começar a usar seu próprio site de agendamentos.'
+            f'Você foi adicionado como <strong>Administrador</strong> da organização "{tenant.nome}". '
+            'Agora você pode fazer login e começar a usar seu próprio sistema de agendamentos.'
         )
         return response
 
 # Views com TenantMixin aplicado
 
-# Empresa
-class EmpresaCreate(LoginRequiredMixin, TenantMixin, CreateView):
+# Empresa (apenas Administradores e Gerentes)
+class EmpresaCreate(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, CreateView):
     template_name = "protocolos/empresa-form.html"
     model = Empresa
     form_class = EmpresaForm
@@ -107,7 +138,7 @@ class EmpresaCreate(LoginRequiredMixin, TenantMixin, CreateView):
     extra_context = {"titulo": "Cadastro de Empresa"}
     login_url = "/protocolo/login/"
 
-class EmpresaUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+class EmpresaUpdate(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, UpdateView):
     template_name = "protocolos/empresa-form.html"
     model = Empresa
     form_class = EmpresaForm
@@ -115,28 +146,35 @@ class EmpresaUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
     extra_context = {"titulo": "Atualizar Empresa"}
     login_url = "/protocolo/login/"
 
-class EmpresaDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+class EmpresaDelete(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, DeleteView):
     template_name = "protocolos/form-excluir.html"
     model = Empresa
     success_url = reverse_lazy("listar-empresa")
     extra_context = {"titulo": "Excluir Empresa"}
     login_url = "/protocolo/login/"
 
-class EmpresaList(LoginRequiredMixin, TenantMixin, ListView):
+class EmpresaList(LoginRequiredMixin, AtendenteMixin, TenantMixin, ListView):
     template_name = "protocolos/listas/empresa.html"
     model = Empresa
     login_url = "/protocolo/login/"
 
-# Cliente
-class ClienteCreate(LoginRequiredMixin, TenantMixin, CreateView):
+# Cliente (controle de propriedade - usuário só pode editar/excluir clientes que criou)
+class ClienteCreate(LoginRequiredMixin, AtendenteMixin, TenantMixin, CreateView):
     template_name = "protocolos/form.html"
     model = Cliente
     fields = ["nome", "email", "telefone", "cpf", "rua", "numero", "bairro", "cidade", "estado", "cep"]
     success_url = reverse_lazy("listar-cliente")
     extra_context = {"titulo": "Cadastro de Cliente"}
     login_url = "/protocolo/login/"
+    
+    def form_valid(self, form):
+        # Automaticamente associa o usuário como criador
+        form.instance.created_by = self.request.user
+        response = super().form_valid(form)
+        messages.success(self.request, f'Cliente {form.instance.nome} cadastrado com sucesso!')
+        return response
 
-class ClienteUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+class ClienteUpdate(LoginRequiredMixin, ClienteOwnerMixin, TenantMixin, UpdateView):
     template_name = "protocolos/form.html"
     model = Cliente
     fields = ["nome", "email", "telefone", "cpf", "rua", "numero", "bairro", "cidade", "estado", "cep"]
@@ -144,20 +182,40 @@ class ClienteUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
     extra_context = {"titulo": "Atualizar Cliente"}
     login_url = "/protocolo/login/"
 
-class ClienteDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+class ClienteDelete(LoginRequiredMixin, ClienteOwnerMixin, TenantMixin, DeleteView):
     template_name = "protocolos/form-excluir.html"
     model = Cliente
     success_url = reverse_lazy("listar-cliente")
     extra_context = {"titulo": "Excluir Cliente"}
     login_url = "/protocolo/login/"
 
-class ClienteList(LoginRequiredMixin, TenantMixin, ListView):
+class ClienteList(LoginRequiredMixin, AtendenteMixin, TenantMixin, ListView):
     template_name = "protocolos/listas/cliente.html"
     model = Cliente
     login_url = "/protocolo/login/"
+    
+    def get_queryset(self):
+        """Filtra clientes baseado no grupo do usuário"""
+        queryset = super().get_queryset()
+        user = self.request.user
+        
+        # Superuser vê todos
+        if user.is_superuser:
+            return queryset
+        
+        # Administradores e Gerentes veem todos do tenant
+        if user.groups.filter(name__in=['Administradores', 'Gerentes']).exists():
+            return queryset
+        
+        # Atendentes veem todos do tenant
+        if user.groups.filter(name='Atendentes').exists():
+            return queryset
+            
+        # Usuários comuns só veem clientes que eles criaram
+        return queryset.filter(created_by=user)
 
-# Aplicando TenantMixin a todas as outras views...
-class AtendenteCreate(LoginRequiredMixin, TenantMixin, CreateView):
+# Atendente (apenas Administradores e Gerentes podem gerenciar)
+class AtendenteCreate(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, CreateView):
     template_name = "protocolos/atendente-form.html"
     model = Atendente
     form_class = AtendenteForm
@@ -191,7 +249,7 @@ class AtendenteCreate(LoginRequiredMixin, TenantMixin, CreateView):
         
         return response
 
-class AtendenteUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+class AtendenteUpdate(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, UpdateView):
     template_name = "protocolos/form.html"
     model = Atendente
     fields = ["empresa", "nome", "email", "telefone", "especialidades"]
@@ -220,14 +278,14 @@ class AtendenteUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
         messages.success(self.request, f'Dados do atendente {atendente.nome} atualizados com sucesso!')
         return super().form_valid(form)
 
-class AtendenteDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+class AtendenteDelete(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, DeleteView):
     template_name = "protocolos/form-excluir.html"
     model = Atendente
     success_url = reverse_lazy("listar-atendente")
     extra_context = {"titulo": "Excluir Atendente"}
     login_url = "/protocolo/login/"
 
-class AtendenteList(LoginRequiredMixin, TenantMixin, ListView):
+class AtendenteList(LoginRequiredMixin, AtendenteMixin, TenantMixin, ListView):
     template_name = "protocolos/listas/atendente.html"
     model = Atendente
     login_url = "/protocolo/login/"
@@ -271,8 +329,8 @@ class HorarioFuncionamentoList(LoginRequiredMixin, TenantMixin, ListView):
     model = HorarioFuncionamento
     login_url = "/protocolo/login/"
 
-# CategoriaServico
-class CategoriaServicoCreate(LoginRequiredMixin, TenantMixin, CreateView):
+# CategoriaServico (apenas Admin/Gerentes criam/editam, Atendentes visualizam)
+class CategoriaServicoCreate(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, CreateView):
     template_name = "protocolos/form.html"
     model = CategoriaServico
     fields = ["empresa", "nome", "descricao"]
@@ -285,7 +343,7 @@ class CategoriaServicoCreate(LoginRequiredMixin, TenantMixin, CreateView):
         form.fields['empresa'].queryset = Empresa.objects.filter(tenant=self.get_tenant())
         return form
 
-class CategoriaServicoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+class CategoriaServicoUpdate(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, UpdateView):
     template_name = "protocolos/form.html"
     model = CategoriaServico
     fields = ["empresa", "nome", "descricao"]
@@ -298,20 +356,20 @@ class CategoriaServicoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
         form.fields['empresa'].queryset = Empresa.objects.filter(tenant=self.get_tenant())
         return form
 
-class CategoriaServicoDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+class CategoriaServicoDelete(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, DeleteView):
     template_name = "protocolos/form-excluir.html"
     model = CategoriaServico
     success_url = reverse_lazy("listar-categoria-servico")
     extra_context = {"titulo": "Excluir Categoria de Serviço"}
     login_url = "/protocolo/login/"
 
-class CategoriaServicoList(LoginRequiredMixin, TenantMixin, ListView):
+class CategoriaServicoList(LoginRequiredMixin, AtendenteMixin, TenantMixin, ListView):
     template_name = "protocolos/listas/categoria_servico.html"
     model = CategoriaServico
     login_url = "/protocolo/login/"
 
-# Servico
-class ServicoCreate(LoginRequiredMixin, TenantMixin, CreateView):
+# Servico (apenas Admin/Gerentes criam/editam, Atendentes visualizam)
+class ServicoCreate(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, CreateView):
     template_name = "protocolos/form.html"
     model = Servico
     fields = ["categoria", "nome", "descricao", "preco", "duracaoMinutos"]
@@ -324,7 +382,7 @@ class ServicoCreate(LoginRequiredMixin, TenantMixin, CreateView):
         form.fields['categoria'].queryset = CategoriaServico.objects.filter(tenant=self.get_tenant())
         return form
 
-class ServicoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+class ServicoUpdate(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, UpdateView):
     template_name = "protocolos/form.html"
     model = Servico
     fields = ["categoria", "nome", "descricao", "preco", "duracaoMinutos"]
@@ -337,14 +395,14 @@ class ServicoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
         form.fields['categoria'].queryset = CategoriaServico.objects.filter(tenant=self.get_tenant())
         return form
 
-class ServicoDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+class ServicoDelete(LoginRequiredMixin, AdminOrManagerMixin, TenantMixin, DeleteView):
     template_name = "protocolos/form-excluir.html"
     model = Servico
     success_url = reverse_lazy("listar-servico")
     extra_context = {"titulo": "Excluir Serviço"}
     login_url = "/protocolo/login/"
 
-class ServicoList(LoginRequiredMixin, TenantMixin, ListView):
+class ServicoList(LoginRequiredMixin, AtendenteMixin, TenantMixin, ListView):
     template_name = "protocolos/listas/servico.html"
     model = Servico
     login_url = "/protocolo/login/"
@@ -388,7 +446,7 @@ class HorarioAtendimentoList(LoginRequiredMixin, TenantMixin, ListView):
     model = HorarioAtendimento
     login_url = "/protocolo/login/"
 
-# Agendamento
+# Agendamento (controle de propriedade - usuário só pode modificar agendamentos que criou)
 class AgendamentoCreate(LoginRequiredMixin, TenantMixin, CreateView):
     template_name = "protocolos/form.html"
     model = Agendamento
@@ -400,13 +458,29 @@ class AgendamentoCreate(LoginRequiredMixin, TenantMixin, CreateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         tenant = self.get_tenant()
-        form.fields['cliente'].queryset = Cliente.objects.filter(tenant=tenant)
+        user = self.request.user
+        
+        # Filtrar opções baseado no usuário
+        if user.groups.filter(name__in=['Administradores', 'Gerentes']).exists() or user.is_superuser:
+            # Admin/Gerentes veem todos os clientes do tenant
+            form.fields['cliente'].queryset = Cliente.objects.filter(tenant=tenant)
+        else:
+            # Usuários comuns só veem clientes que eles criaram
+            form.fields['cliente'].queryset = Cliente.objects.filter(tenant=tenant, created_by=user)
+        
         form.fields['empresa'].queryset = Empresa.objects.filter(tenant=tenant)
         form.fields['servico'].queryset = Servico.objects.filter(tenant=tenant)
         form.fields['atendente'].queryset = Atendente.objects.filter(tenant=tenant)
         return form
+    
+    def form_valid(self, form):
+        # Automaticamente associa o usuário como criador
+        form.instance.created_by = self.request.user
+        response = super().form_valid(form)
+        messages.success(self.request, f'Agendamento para {form.instance.cliente.nome} criado com sucesso!')
+        return response
 
-class AgendamentoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
+class AgendamentoUpdate(LoginRequiredMixin, AgendamentoOwnerMixin, TenantMixin, UpdateView):
     template_name = "protocolos/form.html"
     model = Agendamento
     form_class = AgendamentoForm
@@ -417,13 +491,20 @@ class AgendamentoUpdate(LoginRequiredMixin, TenantMixin, UpdateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         tenant = self.get_tenant()
-        form.fields['cliente'].queryset = Cliente.objects.filter(tenant=tenant)
+        user = self.request.user
+        
+        # Filtrar opções baseado no usuário
+        if user.groups.filter(name__in=['Administradores', 'Gerentes']).exists() or user.is_superuser:
+            form.fields['cliente'].queryset = Cliente.objects.filter(tenant=tenant)
+        else:
+            form.fields['cliente'].queryset = Cliente.objects.filter(tenant=tenant, created_by=user)
+        
         form.fields['empresa'].queryset = Empresa.objects.filter(tenant=tenant)
         form.fields['servico'].queryset = Servico.objects.filter(tenant=tenant)
         form.fields['atendente'].queryset = Atendente.objects.filter(tenant=tenant)
         return form
 
-class AgendamentoDelete(LoginRequiredMixin, TenantMixin, DeleteView):
+class AgendamentoDelete(LoginRequiredMixin, AgendamentoOwnerMixin, TenantMixin, DeleteView):
     template_name = "protocolos/form-excluir.html"
     model = Agendamento
     success_url = reverse_lazy("listar-agendamento")
@@ -434,6 +515,29 @@ class AgendamentoList(LoginRequiredMixin, TenantMixin, ListView):
     template_name = "protocolos/listas/agendamento.html"
     model = Agendamento
     login_url = "/protocolo/login/"
+    
+    def get_queryset(self):
+        """Filtra agendamentos baseado no grupo do usuário"""
+        queryset = super().get_queryset()
+        user = self.request.user
+        
+        # Superuser vê todos
+        if user.is_superuser:
+            return queryset
+        
+        # Administradores e Gerentes veem todos do tenant
+        if user.groups.filter(name__in=['Administradores', 'Gerentes']).exists():
+            return queryset
+        
+        # Atendentes veem todos do tenant
+        if user.groups.filter(name='Atendentes').exists():
+            return queryset
+            
+        # Usuários comuns só veem agendamentos que eles criaram OU onde são o cliente
+        return queryset.filter(
+            models.Q(created_by=user) | 
+            models.Q(cliente__email=user.email)
+        )
 
 # Movimento: Progredir Status do Agendamento
 class ProgredirStatusAgendamentoView(LoginRequiredMixin, TenantMixin, View):
@@ -461,13 +565,27 @@ class ProgredirStatusAgendamentoView(LoginRequiredMixin, TenantMixin, View):
             messages.warning(request, "Ação não permitida para o status atual.")
         return redirect("listar-agendamento")
 
-# View específica para cadastro público de clientes (mantida sem tenant)
+# View específica para cadastro público de clientes (mantida sem tenant, mas com autenticação opcional)
 class ClienteCreatePublico(CreateView):
     template_name = "protocolos/cadastro-cliente-publico.html"
     model = Cliente
-    fields = ["nome", "email", "telefone", "cpf"]
+    fields = ["nome", "email", "telefone", "cpf", "rua", "numero", "bairro", "cidade", "estado", "cep"]
     success_url = reverse_lazy("index")
     extra_context = {"titulo": "Cadastro de Cliente"}
+    
+    def form_valid(self, form):
+        # Se não há usuário logado, criar cliente sem tenant
+        if not self.request.user.is_authenticated:
+            form.instance.tenant = None
+        else:
+            # Se há usuário logado, associar ao tenant
+            try:
+                form.instance.tenant = self.request.user.tenant
+            except:
+                form.instance.tenant = None
+        
+        messages.success(self.request, 'Cliente cadastrado com sucesso!')
+        return super().form_valid(form)
 
 def custom_logout(request):
     """View customizada para logout com mensagem de confirmação"""
@@ -476,4 +594,100 @@ def custom_logout(request):
     
     logout(request)
     messages.success(request, 'Você foi desconectado com sucesso!')
-    return render(request, 'paginasweb/logout.html')
+    return render(request, 'protocolos/auth/logout.html')
+
+# Views de autenticação personalizadas
+class CustomLoginView(LoginView):
+    template_name = 'protocolos/auth/login.html'
+    redirect_authenticated_user = True
+    success_url = reverse_lazy('index')
+    
+    def get_success_url(self):
+        return reverse_lazy('index')
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'Bem-vindo, {form.get_user().get_full_name() or form.get_user().username}!')
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        messages.error(self.request, 'Email ou senha incorretos. Tente novamente.')
+        return super().form_invalid(form)
+
+class CustomLogoutView(LogoutView):
+    template_name = 'protocolos/auth/logout.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        messages.success(request, 'Você foi desconectado com sucesso!')
+        return super().dispatch(request, *args, **kwargs)
+
+# View personalizada para acesso negado
+def acesso_negado(request):
+    """View para exibir página de acesso negado"""
+    return render(request, 'protocolos/auth/acesso_negado.html', status=403)
+
+# View para exibir perfil do usuário com informações de grupos
+@login_required(login_url='/protocolo/login/')
+def perfil_usuario(request):
+    """View para exibir informações sobre grupos e permissões do usuário"""
+    context = {
+        'titulo': 'Meu Perfil de Acesso',
+        'user': request.user,
+    }
+    return render(request, 'protocolos/auth/perfil.html', context)
+
+# Tenant Views (apenas para superusers)
+class TenantCreate(LoginRequiredMixin, CreateView):
+    template_name = "protocolos/form.html"
+    model = Tenant
+    fields = ["nome", "slug", "max_empresas", "max_clientes", "max_agendamentos_mes"]
+    success_url = reverse_lazy("listar-tenant")
+    extra_context = {"titulo": "Cadastro de Tenant"}
+    login_url = "/protocolo/login/"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, 'Acesso negado. Apenas administradores podem gerenciar tenants.')
+            return redirect('index')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+class TenantUpdate(LoginRequiredMixin, UpdateView):
+    template_name = "protocolos/form.html"
+    model = Tenant
+    fields = ["nome", "slug", "max_empresas", "max_clientes", "max_agendamentos_mes"]
+    success_url = reverse_lazy("listar-tenant")
+    extra_context = {"titulo": "Atualizar Tenant"}
+    login_url = "/protocolo/login/"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, 'Acesso negado. Apenas administradores podem gerenciar tenants.')
+            return redirect('index')
+        return super().dispatch(request, *args, **kwargs)
+
+class TenantDelete(LoginRequiredMixin, DeleteView):
+    template_name = "protocolos/form-excluir.html"
+    model = Tenant
+    success_url = reverse_lazy("listar-tenant")
+    extra_context = {"titulo": "Excluir Tenant"}
+    login_url = "/protocolo/login/"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, 'Acesso negado. Apenas administradores podem gerenciar tenants.')
+            return redirect('index')
+        return super().dispatch(request, *args, **kwargs)
+
+class TenantList(LoginRequiredMixin, ListView):
+    template_name = "protocolos/listas/tenant.html"
+    model = Tenant
+    login_url = "/protocolo/login/"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, 'Acesso negado. Apenas administradores podem gerenciar tenants.')
+            return redirect('index')
+        return super().dispatch(request, *args, **kwargs)

@@ -1,0 +1,25 @@
+<!-- Widget de Estatísticas Card -->
+<div class="card border-{{ border_color|default:'primary' }} h-100">
+    <div class="card-body text-center">
+        <div class="feature bg-{{ bg_color|default:'primary' }} bg-gradient text-white rounded-3 mb-3">
+            <i class="fas fa-{{ icon|default:'chart-bar' }}"></i>
+        </div>
+        <h5 class="card-title">{{ value|default:'0' }}</h5>
+        <p class="card-text text-muted">{{ label }}</p>
+        {% if sublabel %}
+            <small class="text-{{ sublabel_color|default:'muted' }}">{{ sublabel }}</small>
+        {% endif %}
+        {% if percentage %}
+            <div class="progress mt-2" style="height: 5px;">
+                <div class="progress-bar bg-{{ bg_color|default:'primary' }}" 
+                     role="progressbar" 
+                     style="width: {{ percentage }}%" 
+                     aria-valuenow="{{ percentage }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+            <small class="text-muted">{{ percentage }}% do objetivo</small>
+        {% endif %}
+    </div>
+</div>

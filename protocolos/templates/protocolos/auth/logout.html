@@ -1,0 +1,35 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Logout Realizado</span>
+    </h1>
+    <p class="lead fw-light mb-4">Você foi desconectado com sucesso!</p>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="text-center">
+            <div class="alert alert-success" role="alert">
+                <h4 class="alert-heading">Até logo!</h4>
+                <p>Você foi desconectado com sucesso do sistema.</p>
+                <hr>
+                <p class="mb-0">Obrigado por usar nosso sistema de agendamentos!</p>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'index' %}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-home"></i> Página Inicial
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Fazer Login Novamente
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock conteudo %}

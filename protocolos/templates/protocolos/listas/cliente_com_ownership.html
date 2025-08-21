@@ -1,0 +1,131 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Lista de Clientes</span>
+    </h1>
+    <p class="lead fw-light mb-4">Gerencie seus clientes cadastrados</p>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<div class="container px-5">
+    <div class="row gx-5 justify-content-center">
+        <div class="col-lg-12">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">👥 Clientes</h5>
+                    <a href="{% url 'cadastrar-cliente' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Novo Cliente
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if object_list %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                        <th>Telefone</th>
+                                        <th>CPF</th>
+                                        <th>Criado por</th>
+                                        <th>Data de Criação</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cliente in object_list %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ cliente.nome }}</strong>
+                                                {% if cliente.created_by == user %}
+                                                    <span class="badge bg-success ms-2">Meu cliente</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ cliente.email }}</td>
+                                            <td>{{ cliente.telefone }}</td>
+                                            <td>{{ cliente.cpf }}</td>
+                                            <td>
+                                                {% if cliente.created_by %}
+                                                    <small class="text-muted">
+                                                        {% if cliente.created_by == user %}
+                                                            <strong>Você</strong>
+                                                        {% else %}
+                                                            {{ cliente.created_by.get_full_name|default:cliente.created_by.username }}
+                                                        {% endif %}
+                                                    </small>
+                                                {% else %}
+                                                    <small class="text-muted">Sistema</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    {{ cliente.created_at|date:"d/m/Y H:i" }}
+                                                </small>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group" role="group">
+                                                    <!-- Botão Editar - só aparece se o usuário pode editar -->
+                                                    {% if user.is_superuser or user.groups.filter.name__in:"Administradores,Gerentes" or cliente.created_by == user %}
+                                                        <a href="{% url 'editar-cliente' cliente.pk %}" 
+                                                           class="btn btn-sm btn-outline-primary" 
+                                                           title="Editar">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    
+                                                    <!-- Botão Excluir - só aparece se o usuário pode excluir -->
+                                                    {% if user.is_superuser or user.groups.filter.name__in:"Administradores,Gerentes" or cliente.created_by == user %}
+                                                        <a href="{% url 'excluir-cliente' cliente.pk %}" 
+                                                           class="btn btn-sm btn-outline-danger" 
+                                                           title="Excluir"
+                                                           onclick="return confirm('Tem certeza que deseja excluir este cliente?')">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">Nenhum cliente cadastrado</h4>
+                            <p class="text-muted">Comece cadastrando seu primeiro cliente!</p>
+                            <a href="{% url 'cadastrar-cliente' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Cadastrar Cliente
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Informações sobre controle de acesso -->
+            <div class="mt-4">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle"></i> Controle de Acesso
+                    </h6>
+                    <small>
+                        {% if user.is_superuser %}
+                            <strong>Super Administrador:</strong> Você pode ver e modificar todos os clientes.
+                        {% elif user.groups.filter.name__in:"Administradores,Gerentes" %}
+                            <strong>{{ user.groups.first.name }}:</strong> Você pode ver e modificar todos os clientes da organização.
+                        {% elif user.groups.filter.name="Atendentes" %}
+                            <strong>Atendente:</strong> Você pode ver todos os clientes e modificar apenas os que você cadastrou.
+                        {% else %}
+                            <strong>Usuário:</strong> Você pode ver e modificar apenas clientes que você cadastrou.
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock conteudo %}

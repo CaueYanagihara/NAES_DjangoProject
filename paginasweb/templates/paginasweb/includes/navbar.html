@@ -1,0 +1,70 @@
+<!-- Navbar dinâmica -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white py-3">
+    <div class="container px-5">
+        <a class="navbar-brand" href="{% url 'index' %}">
+            <span class="fw-bolder text-primary">Agende Fácil</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 small fw-bolder">
+                <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'sobre' %}">Sobre</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'contato' %}">Contato</a></li>
+                
+                {% if user.is_authenticated %}
+                    <!-- Menu para usuários logados -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            📋 Gerenciar
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'escolher-cadastro' %}">📋 Todas as Listagens</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'listar-agendamento' %}">📅 Agendamentos</a></li>
+                            <li><a class="dropdown-item" href="{% url 'listar-cliente' %}">👥 Clientes</a></li>
+                            <li><a class="dropdown-item" href="{% url 'listar-empresa' %}">🏢 Empresas</a></li>
+                            <li><a class="dropdown-item" href="{% url 'listar-servico' %}">🛠️ Serviços</a></li>
+                            <li><a class="dropdown-item" href="{% url 'listar-atendente' %}">👨‍💼 Atendentes</a></li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-primary" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            👋 {{ user.get_full_name|default:user.username }}
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                            <li><h6 class="dropdown-header">Minha Conta</h6></li>
+                            <li><a class="dropdown-item" href="{% url 'perfil-usuario' %}">👤 Meu Perfil</a></li>
+                            <li><a class="dropdown-item" href="#">⚙️ Configurações</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><small class="dropdown-item-text text-muted">
+                                Grupos: 
+                                {% for group in user.groups.all %}
+                                    <span class="badge bg-primary badge-sm">{{ group.name }}</span>
+                                {% empty %}
+                                    <span class="text-muted">Nenhum</span>
+                                {% endfor %}
+                            </small></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">🚪 Sair</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <!-- Menu para usuários não logados -->
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-outline-primary btn-sm px-3 mx-1" href="{% url 'login' %}">
+                            🔐 Entrar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary btn-sm px-3 mx-1 text-white" href="{% url 'cadastrar-usuario' %}">
+                            📝 Cadastre-se
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

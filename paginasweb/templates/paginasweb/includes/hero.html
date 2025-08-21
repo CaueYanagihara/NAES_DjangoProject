@@ -1,0 +1,53 @@
+<!-- Hero Section Dinâmica -->
+<section class="bg-gradient-primary-to-secondary text-white">
+    <div class="container px-5">
+        <div class="row gx-5 align-items-center justify-content-center">
+            <div class="col-lg-8 col-xl-7 col-xxl-6">
+                <div class="my-5 text-center text-xl-start">
+                    {% if user.is_authenticated %}
+                        <!-- Conteúdo para usuários logados -->
+                        <h1 class="display-5 fw-bolder text-white mb-2">
+                            Bem-vindo de volta, {{ user.get_full_name|default:user.username }}!
+                        </h1>
+                        <p class="lead fw-normal text-white-50 mb-4">
+                            Gerencie seus agendamentos, clientes e serviços de forma simples e eficiente. 
+                            Seu sistema está pronto para uso!
+                        </p>
+                        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center justify-content-xl-start">
+                            <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'escolher-cadastro' %}">
+                                🏠 Acessar Sistema
+                            </a>
+                            <a class="btn btn-outline-light btn-lg px-4" href="{% url 'listar-agendamento' %}">
+                                📅 Ver Agendamentos
+                            </a>
+                        </div>
+                    {% else %}
+                        <!-- Conteúdo para usuários não logados -->
+                        <h1 class="display-5 fw-bolder text-white mb-2">
+                            Simplifique seus agendamentos!
+                        </h1>
+                        <p class="lead fw-normal text-white-50 mb-4">
+                            Gerencie agendamentos de forma profissional. Sistema completo para salões, 
+                            clínicas, consultórios e muito mais.
+                        </p>
+                        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center justify-content-xl-start">
+                            <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'cadastrar-usuario' %}">
+                                🚀 Começar Agora
+                            </a>
+                            <a class="btn btn-outline-light btn-lg px-4" href="{% url 'login' %}">
+                                🔐 Fazer Login
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-xl-5 col-xxl-6 d-none d-xl-block text-center">
+                {% if user.is_authenticated %}
+                    <img class="img-fluid rounded-3 my-5" src="{% static 'img/dashboard-preview.jpg' %}" alt="Dashboard" />
+                {% else %}
+                    <img class="img-fluid rounded-3 my-5" src="{% static 'img/hero-image.jpg' %}" alt="Agendamento Fácil" />
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>

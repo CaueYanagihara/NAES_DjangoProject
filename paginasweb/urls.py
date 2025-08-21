@@ -1,6 +1,7 @@
 from django.urls import path
 # Importar suas views
 from .views import PaginaInicial, SobreView, ContatoView, EscolherCadastroView, HomeView
+from . import views
 
 urlpatterns = [
     path("", PaginaInicial.as_view(), name="index" ),
@@ -8,4 +9,5 @@ urlpatterns = [
     path("contato/", ContatoView.as_view(), name="contato"),
     path("escolher-cadastro/", EscolherCadastroView.as_view(), name="escolher-cadastro"),
     path("home/", HomeView.as_view(), name="home"),
+    path('api/dashboard-data/', views.dashboard_data, name='dashboard-data'),
 ]

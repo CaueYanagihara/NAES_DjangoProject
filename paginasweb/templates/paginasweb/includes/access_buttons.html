@@ -1,0 +1,74 @@
+<!-- Botões de acesso baseados em grupos do usuário -->
+{% if user.is_authenticated %}
+    <div class="container px-5 mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">🎯 Acesso Rápido - {{ user.get_full_name|default:user.username }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Botões para todos os usuários autenticados -->
+                    <div class="col-md-4">
+                        <a href="{% url 'listar-agendamento' %}" class="btn btn-outline-primary w-100">
+                            📅 Meus Agendamentos
+                        </a>
+                    </div>
+                    
+                    <!-- Botões para Atendentes, Gerentes e Administradores -->
+                    {% if user.groups.filter.name__in:"Atendentes,Gerentes,Administradores" or user.is_superuser %}
+                        <div class="col-md-4">
+                            <a href="{% url 'listar-cliente' %}" class="btn btn-outline-success w-100">
+                                👥 Clientes
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'listar-servico' %}" class="btn btn-outline-info w-100">
+                                🛠️ Serviços
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Botões para Gerentes e Administradores -->
+                    {% if user.groups.filter.name__in:"Gerentes,Administradores" or user.is_superuser %}
+                        <div class="col-md-4">
+                            <a href="{% url 'listar-empresa' %}" class="btn btn-outline-warning w-100">
+                                🏢 Empresas
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'listar-atendente' %}" class="btn btn-outline-secondary w-100">
+                                👨‍💼 Atendentes
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'listar-categoria-servico' %}" class="btn btn-outline-primary w-100">
+                                📂 Categorias
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Botões apenas para Administradores -->
+                    {% if user.groups.filter.name="Administradores" or user.is_superuser %}
+                        <div class="col-md-4">
+                            <a href="{% url 'listar-tenant' %}" class="btn btn-outline-danger w-100">
+                                🏛️ Tenants
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Informação sobre grupos -->
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        Seus grupos: 
+                        {% for group in user.groups.all %}
+                            <span class="badge bg-primary">{{ group.name }}</span>
+                        {% empty %}
+                            <span class="text-warning">Nenhum grupo atribuído</span>
+                        {% endfor %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}

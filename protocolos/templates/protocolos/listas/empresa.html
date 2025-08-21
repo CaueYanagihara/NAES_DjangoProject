@@ -27,7 +27,7 @@
             <td>{{ object.cnpj }}</td>
             <td>{{ object.email }}</td>
             <td>{{ object.telefone }}</td>
-            <td>{{ object.endereco_completo }}</td>
+            <td>            <td>{{ object.endereco_completo }}</td></td>
             <td>{{ object.ativo|yesno:"Sim,Não" }}</td>
             <td>
                 <a href="{% url 'editar-empresa' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>

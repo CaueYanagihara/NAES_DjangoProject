@@ -1,6 +1,8 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class TipoUsuario(models.TextChoices):
     EMPRESA = 'EMPRESA', 'Empresa'
@@ -69,6 +71,12 @@ class Cliente(models.Model):
     
     # Campo tenant opcional inicialmente
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+    
+    # Campo para controle de propriedade
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
+                                 related_name='clientes_criados', verbose_name="Criado por")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     class Meta:
         verbose_name = "Cliente"
@@ -208,6 +216,12 @@ class Agendamento(models.Model):
     atendente = models.ForeignKey(Atendente, on_delete=models.CASCADE, related_name='agendamentos')
     # Campo tenant opcional inicialmente
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, verbose_name="Organização", null=True, blank=True)
+    
+    # Campo para controle de propriedade
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
+                                 related_name='agendamentos_criados', verbose_name="Criado por")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     class Meta:
         verbose_name = "Agendamento"
@@ -215,3 +229,48 @@ class Agendamento(models.Model):
 
     def __str__(self):
         return f"{self.cliente.nome} - {self.servico.nome} ({self.dataHoraInicio.strftime('%d/%m/%Y %H:%M')})"
+
+# Extend User model with tenant relationship
+class UserProfile(models.Model):
+    """Extensão do modelo User para adicionar relação com Tenant"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    tenant = models.ForeignKey('Tenant', on_delete=models.CASCADE, null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'Perfil de Usuário'
+        verbose_name_plural = 'Perfis de Usuários'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.tenant.nome if self.tenant else 'Sem organização'}"
+
+# Signal para criar profile automaticamente
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Cria profile automaticamente quando User é criado"""
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """Salva profile quando User é salvo"""
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+
+# Adicionar propriedade tenant ao User
+def get_user_tenant(self):
+    """Retorna o tenant do usuário através do profile"""
+    try:
+        return self.profile.tenant
+    except UserProfile.DoesNotExist:
+        UserProfile.objects.create(user=self)
+        return None
+
+def set_user_tenant(self, tenant):
+    """Define o tenant do usuário"""
+    profile, created = UserProfile.objects.get_or_create(user=self)
+    profile.tenant = tenant
+    profile.save()
+
+# Monkey patch para adicionar métodos ao User
+User.add_to_class('tenant', property(get_user_tenant))
+User.add_to_class('set_tenant', set_user_tenant)

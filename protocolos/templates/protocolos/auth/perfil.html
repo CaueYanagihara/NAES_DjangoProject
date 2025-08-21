@@ -1,0 +1,151 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Meu Perfil de Acesso</span>
+    </h1>
+    <p class="lead fw-light mb-4">Informações sobre suas permissões no sistema</p>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-header">
+                <h3 class="text-center font-weight-light my-4">
+                    👤 {{ user.get_full_name|default:user.username }}
+                </h3>
+            </div>
+            <div class="card-body">
+                <!-- Informações básicas -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>📧 Email:</h5>
+                        <p class="text-muted">{{ user.email|default:"Não informado" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>📅 Membro desde:</h5>
+                        <p class="text-muted">{{ user.date_joined|date:"d/m/Y" }}</p>
+                    </div>
+                </div>
+
+                <!-- Status de acesso -->
+                <div class="mb-4">
+                    <h5>🔐 Status de Acesso:</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if user.is_superuser %}
+                            <span class="badge bg-danger fs-6">🔥 Super Administrador</span>
+                        {% endif %}
+                        {% if user.is_staff %}
+                            <span class="badge bg-warning fs-6">⚡ Staff</span>
+                        {% endif %}
+                        {% if user.is_active %}
+                            <span class="badge bg-success fs-6">✅ Ativo</span>
+                        {% else %}
+                            <span class="badge bg-secondary fs-6">❌ Inativo</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Grupos do usuário -->
+                <div class="mb-4">
+                    <h5>👥 Grupos de Acesso:</h5>
+                    {% if user.groups.all %}
+                        <div class="row">
+                            {% for group in user.groups.all %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body p-3">
+                                            <h6 class="card-title">
+                                                {% if group.name == 'Administradores' %}
+                                                    🛡️ {{ group.name }}
+                                                {% elif group.name == 'Gerentes' %}
+                                                    👔 {{ group.name }}
+                                                {% elif group.name == 'Atendentes' %}
+                                                    👨‍💼 {{ group.name }}
+                                                {% elif group.name == 'Clientes' %}
+                                                    👤 {{ group.name }}
+                                                {% else %}
+                                                    📋 {{ group.name }}
+                                                {% endif %}
+                                            </h6>
+                                            <small class="text-muted">
+                                                {% if group.name == 'Administradores' %}
+                                                    Acesso total ao sistema
+                                                {% elif group.name == 'Gerentes' %}
+                                                    Gestão de empresa e funcionários
+                                                {% elif group.name == 'Atendentes' %}
+                                                    Gestão de clientes e agendamentos
+                                                {% elif group.name == 'Clientes' %}
+                                                    Visualização de próprios agendamentos
+                                                {% else %}
+                                                    Grupo personalizado
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Você não está em nenhum grupo específico. 
+                            Entre em contato com o administrador para configurar suas permissões.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Permissões específicas -->
+                {% if user.user_permissions.all %}
+                <div class="mb-4">
+                    <h5>🔑 Permissões Específicas:</h5>
+                    <div class="row">
+                        {% for permission in user.user_permissions.all %}
+                            <div class="col-md-6 mb-2">
+                                <span class="badge bg-light text-dark border">
+                                    {{ permission.name }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Organização/Tenant -->
+                {% if user.tenant %}
+                <div class="mb-4">
+                    <h5>🏢 Sua Organização:</h5>
+                    <div class="card border-success">
+                        <div class="card-body p-3">
+                            <h6 class="card-title">{{ user.tenant.nome }}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    Slug: {{ user.tenant.slug }}<br>
+                                    Criado em: {{ user.tenant.criado_em|date:"d/m/Y H:i" }}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Ações disponíveis -->
+                <div class="text-center">
+                    <a href="{% url 'index' %}" class="btn btn-primary me-3">
+                        <i class="fas fa-home"></i> Voltar ao Início
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'escolher-cadastro' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list"></i> Acessar Sistema
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock conteudo %}

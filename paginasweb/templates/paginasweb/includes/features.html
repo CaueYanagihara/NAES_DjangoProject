@@ -1,0 +1,88 @@
+<!-- Cards dinâmicos baseados no status de autenticação -->
+<section class="py-5" id="features">
+    <div class="container px-5 my-5">
+        {% if user.is_authenticated %}
+            <!-- Cards para usuários logados -->
+            <div class="row gx-5">
+                <div class="col-lg-4 mb-5 mb-lg-0">
+                    <h2 class="fw-bolder mb-0">Bem-vindo ao seu sistema!</h2>
+                </div>
+                <div class="col-lg-8">
+                    <div class="row gx-5 row-cols-1 row-cols-md-2">
+                        <div class="col mb-5 h-100">
+                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h2 class="h5">Agendamentos</h2>
+                            <p class="mb-0">Gerencie todos os seus agendamentos de forma simples e eficiente.</p>
+                            <a href="{% url 'listar-agendamento' %}" class="btn btn-outline-primary btn-sm mt-2">Ver Agendamentos</a>
+                        </div>
+                        <div class="col mb-5 h-100">
+                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h2 class="h5">Clientes</h2>
+                            <p class="mb-0">Mantenha o cadastro dos seus clientes sempre atualizado.</p>
+                            <a href="{% url 'listar-cliente' %}" class="btn btn-outline-primary btn-sm mt-2">Ver Clientes</a>
+                        </div>
+                        <div class="col mb-5 mb-md-0 h-100">
+                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <h2 class="h5">Empresas</h2>
+                            <p class="mb-0">Configure e gerencie as informações das suas empresas.</p>
+                            <a href="{% url 'listar-empresa' %}" class="btn btn-outline-primary btn-sm mt-2">Ver Empresas</a>
+                        </div>
+                        <div class="col h-100">
+                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h2 class="h5">Serviços</h2>
+                            <p class="mb-0">Defina e organize todos os serviços oferecidos.</p>
+                            <a href="{% url 'listar-servico' %}" class="btn btn-outline-primary btn-sm mt-2">Ver Serviços</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Cards para usuários não logados -->
+            <div class="row gx-5">
+                <div class="col-lg-4 mb-5 mb-lg-0">
+                    <h2 class="fw-bolder mb-0">Uma solução completa para agendamentos</h2>
+                </div>
+                <div class="col-lg-8">
+                    <div class="row gx-5 row-cols-1 row-cols-md-2">
+                        <div class="col mb-5 h-100">
+                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <h2 class="h5">Fácil de usar</h2>
+                            <p class="mb-0">Interface intuitiva que facilita o gerenciamento de agendamentos.</p>
+                        </div>
+                        <div class="col mb-5 h-100">
+                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h2 class="h5">Seguro e confiável</h2>
+                            <p class="mb-0">Seus dados protegidos com a melhor tecnologia de segurança.</p>
+                        </div>
+                        <div class="col mb-5 mb-md-0 h-100">
+                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h2 class="h5">Economia de tempo</h2>
+                            <p class="mb-0">Automatize processos e tenha mais tempo para focar no que importa.</p>
+                        </div>
+                        <div class="col h-100">
+                            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h2 class="h5">Relatórios detalhados</h2>
+                            <p class="mb-0">Acompanhe o desempenho do seu negócio com relatórios completos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>

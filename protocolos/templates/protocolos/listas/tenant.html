@@ -1,0 +1,42 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Tenants</span>
+    </h1>
+    <a href="{% url 'cadastrar-tenant' %}" class="btn btn-primary">+ Adicionar Tenant</a>
+    <a href="/escolher-cadastro/" class="btn btn-secondary ms-2">Voltar</a>
+</div>
+{% endblock header %}
+{% block conteudo %}
+<div>
+    <table class="table table-striped">
+        <tr>
+            <th>Nome</th>
+            <th>Slug</th>
+            <th>Proprietário</th>
+            <th>Max Empresas</th>
+            <th>Max Clientes</th>
+            <th>Ativo</th>
+            <th>Opções</th>
+        </tr>
+        {% for object in object_list %}
+        <tr>
+            <td>{{ object.nome }}</td>
+            <td>{{ object.slug }}</td>
+            <td>{{ object.owner.username }}</td>
+            <td>{{ object.max_empresas }}</td>
+            <td>{{ object.max_clientes }}</td>
+            <td>{{ object.ativo|yesno:"Sim,Não" }}</td>
+            <td>
+                <a href="{% url 'editar-tenant' object.pk %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a href="{% url 'excluir-tenant' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">Nenhum tenant cadastrado.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock conteudo %}

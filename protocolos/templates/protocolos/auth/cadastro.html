@@ -1,0 +1,262 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline">Criar Conta</span>
+    </h1>
+    <p class="lead fw-light mb-4">Cadastre-se gratuitamente e crie seu próprio sistema de agendamentos</p>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<div class="container px-5 my-5">
+    <div class="row gx-5 justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header">
+                    <h3 class="text-center font-weight-light my-4">
+                        👤 Cadastro de Usuário
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message|safe }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Informações Pessoais -->
+                        <div class="mb-4">
+                            <h5 class="text-primary">📋 Informações Pessoais</h5>
+                            <hr>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.first_name }}
+                                    <label for="{{ form.first_name.id_for_label }}">Nome *</label>
+                                    {% if form.first_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.first_name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.last_name }}
+                                    <label for="{{ form.last_name.id_for_label }}">Sobrenome *</label>
+                                    {% if form.last_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.last_name.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Credenciais de Login -->
+                        <div class="mb-4">
+                            <h5 class="text-primary">🔐 Credenciais de Acesso</h5>
+                            <hr>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.username }}
+                            <label for="{{ form.username.id_for_label }}">Nome de Usuário *</label>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Este será seu nome único no sistema. Use apenas letras, números e @/./+/-/_
+                                </small>
+                            </div>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.username.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            {{ form.email }}
+                            <label for="{{ form.email.id_for_label }}">Email *</label>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-envelope"></i> 
+                                    Será usado para login e comunicações importantes
+                                </small>
+                            </div>
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.password1 }}
+                                    <label for="{{ form.password1.id_for_label }}">Senha *</label>
+                                    {% if form.password1.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.password1.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form.password2 }}
+                                    <label for="{{ form.password2.id_for_label }}">Confirmar Senha *</label>
+                                    {% if form.password2.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.password2.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Requisitos da senha -->
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-shield-alt"></i> Requisitos da Senha
+                            </h6>
+                            <ul class="mb-0 small">
+                                <li>Mínimo de 8 caracteres</li>
+                                <li>Não pode ser muito similar às suas outras informações</li>
+                                <li>Não pode ser uma senha muito comum</li>
+                                <li>Não pode ser inteiramente numérica</li>
+                            </ul>
+                        </div>
+
+                        <!-- Informações sobre o sistema -->
+                        <div class="mb-4">
+                            <h5 class="text-primary">🏢 Sua Organização</h5>
+                            <hr>
+                            <div class="alert alert-success">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-magic"></i> Configuração Automática
+                                </h6>
+                                <p class="mb-0">
+                                    Após o cadastro, criaremos automaticamente seu espaço privado no sistema com:
+                                </p>
+                                <ul class="mt-2 mb-0">
+                                    <li>✅ Sua organização personalizada</li>
+                                    <li>✅ Configurações iniciais</li>
+                                    <li>✅ Permissões de administrador</li>
+                                    <li>✅ Acesso completo ao sistema</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Botões de ação -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                    <i class="fas fa-user-plus"></i> Criar Conta
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{% url 'login' %}" class="btn btn-outline-secondary w-100 btn-lg">
+                                    <i class="fas fa-sign-in-alt"></i> Já tenho conta
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Links úteis -->
+                        <div class="text-center mt-4">
+                            <small class="text-muted">
+                                Ao criar uma conta, você concorda com nossos 
+                                <a href="{% url 'sobre' %}">Termos de Uso</a> e 
+                                <a href="{% url 'contato' %}">Política de Privacidade</a>
+                            </small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Benefícios do sistema -->
+            <div class="row mt-5">
+                <div class="col-lg-12">
+                    <h4 class="text-center mb-4">🌟 Por que escolher nosso sistema?</h4>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3 mx-auto" style="width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <h5>Rápido e Fácil</h5>
+                                <p class="text-muted">Configure seu sistema de agendamentos em minutos</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="feature bg-success bg-gradient text-white rounded-3 mb-3 mx-auto" style="width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <h5>Seguro e Confiável</h5>
+                                <p class="text-muted">Seus dados estão protegidos com alta segurança</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="feature bg-info bg-gradient text-white rounded-3 mb-3 mx-auto" style="width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h5>Multi-usuário</h5>
+                                <p class="text-muted">Gerencie equipes e permissões facilmente</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validação do formulário
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Verificação de força da senha
+document.addEventListener('DOMContentLoaded', function() {
+    const password1 = document.getElementById('{{ form.password1.id_for_label }}');
+    const password2 = document.getElementById('{{ form.password2.id_for_label }}');
+    
+    if (password1 && password2) {
+        password2.addEventListener('input', function() {
+            if (password1.value !== password2.value) {
+                password2.setCustomValidity('As senhas não coincidem');
+            } else {
+                password2.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
+{% endblock conteudo %}

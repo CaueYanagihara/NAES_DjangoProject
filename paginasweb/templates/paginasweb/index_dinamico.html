@@ -1,0 +1,325 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+
+{% block header %}
+{% if user.is_authenticated %}
+    <!-- Header para usuários logados com dados dinâmicos -->
+    <div class="text-center">
+        <h1 class="display-5 fw-bolder mb-4">
+            <span class="text-gradient d-inline">Bem-vindo de volta, {{ user.get_full_name|default:user.username }}!</span>
+        </h1>
+        {% if tenant %}
+            <p class="lead fw-light mb-4">{{ tenant.nome }} - Sistema de Agendamentos</p>
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'cadastrar-agendamento' %}">📅 Novo Agendamento</a>
+                <a class="btn btn-outline-primary btn-lg px-4" href="{% url 'escolher-cadastro' %}">📋 Gerenciar Sistema</a>
+            </div>
+        {% else %}
+            <p class="lead fw-light mb-4">Configure sua organização para começar</p>
+            <div class="alert alert-warning">
+                <strong>Configuração Necessária:</strong> Sua organização está sendo configurada. Entre em contato com o suporte se este problema persistir.
+            </div>
+        {% endif %}
+    </div>
+{% else %}
+    <!-- Header para usuários não logados -->
+    {% include "paginasweb/includes/hero.html" %}
+{% endif %}
+{% endblock header %}
+
+{% block conteudo %}
+{% if user.is_authenticated and tenant %}
+    <!-- Dashboard dinâmico para usuários logados -->
+    <div class="container px-5 my-5">
+        <!-- Estatísticas principais -->
+        <div class="row gx-5 mb-5">
+            <div class="col-lg-12">
+                <h2 class="fw-bolder mb-4">📊 Resumo {{ mes_atual }}</h2>
+                <div class="row g-3">
+                    <!-- Card de Agendamentos do Mês -->
+                    <div class="col-md-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center">
+                                <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <h5 class="card-title">{{ total_agendamentos_mes }}</h5>
+                                <p class="card-text text-muted">Agendamentos no Mês</p>
+                                <small class="text-success">
+                                    ✅ {{ agendamentos_concluidos }} concluídos
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Card de Clientes -->
+                    <div class="col-md-3">
+                        <div class="card border-success h-100">
+                            <div class="card-body text-center">
+                                <div class="feature bg-success bg-gradient text-white rounded-3 mb-3">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h5 class="card-title">{{ total_clientes }}</h5>
+                                <p class="card-text text-muted">Clientes Cadastrados</p>
+                                {% if meus_clientes %}
+                                    <small class="text-info">{{ meus_clientes }} meus clientes</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Card de Serviços -->
+                    <div class="col-md-3">
+                        <div class="card border-info h-100">
+                            <div class="card-body text-center">
+                                <div class="feature bg-info bg-gradient text-white rounded-3 mb-3">
+                                    <i class="fas fa-tools"></i>
+                                </div>
+                                <h5 class="card-title">{{ total_servicos }}</h5>
+                                <p class="card-text text-muted">Serviços Disponíveis</p>
+                                <small class="text-muted">{{ total_atendentes }} atendentes</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Card de Receita -->
+                    <div class="col-md-3">
+                        <div class="card border-warning h-100">
+                            <div class="card-body text-center">
+                                <div class="feature bg-warning bg-gradient text-white rounded-3 mb-3">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <h5 class="card-title">R$ {{ receita_mes|floatformat:2 }}</h5>
+                                <p class="card-text text-muted">Receita do Mês</p>
+                                <small class="text-muted">Serviços concluídos</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status dos Agendamentos -->
+        <div class="row gx-5 mb-5">
+            <div class="col-lg-12">
+                <h3 class="fw-bolder mb-3">📈 Status dos Agendamentos</h3>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">⏳ Pendentes</h6>
+                                <h4 class="text-warning">{{ agendamentos_pendentes }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">✅ Confirmados</h6>
+                                <h4 class="text-info">{{ agendamentos_confirmados }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">🎉 Concluídos</h6>
+                                <h4 class="text-success">{{ agendamentos_concluidos }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agendamentos de Hoje e Próximos -->
+        <div class="row gx-5 mb-5">
+            <!-- Agendamentos de Hoje -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">🗓️ Agendamentos de Hoje</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if agendamentos_hoje %}
+                            {% for agendamento in agendamentos_hoje %}
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <div>
+                                        <strong>{{ agendamento.cliente.nome }}</strong><br>
+                                        <small class="text-muted">
+                                            {{ agendamento.servico.nome }} - {{ agendamento.atendente.nome }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-{% if agendamento.status == 'pendente' %}warning{% elif agendamento.status == 'confirmado' %}info{% else %}success{% endif %}">
+                                            {{ agendamento.get_status_display }}
+                                        </span><br>
+                                        <small class="text-muted">{{ agendamento.dataHoraInicio|time:"H:i" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-calendar-day fa-2x mb-3"></i>
+                                <p>Nenhum agendamento para hoje</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Próximos Agendamentos -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">📅 Próximos Agendamentos</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if proximos_agendamentos %}
+                            {% for agendamento in proximos_agendamentos %}
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <div>
+                                        <strong>{{ agendamento.cliente.nome }}</strong><br>
+                                        <small class="text-muted">
+                                            {{ agendamento.servico.nome }} - {{ agendamento.atendente.nome }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">
+                                            {{ agendamento.dataHoraInicio|date:"d/m" }} às {{ agendamento.dataHoraInicio|time:"H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            <div class="text-center mt-3">
+                                <a href="{% url 'listar-agendamento' %}" class="btn btn-sm btn-outline-primary">
+                                    Ver Todos os Agendamentos
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-calendar-plus fa-2x mb-3"></i>
+                                <p>Nenhum agendamento próximo</p>
+                                <a href="{% url 'cadastrar-agendamento' %}" class="btn btn-sm btn-primary">
+                                    Criar Agendamento
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rankings -->
+        <div class="row gx-5 mb-5">
+            <!-- Clientes Mais Ativos -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">🏆 Clientes Mais Ativos</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if clientes_ativos %}
+                            {% for cliente in clientes_ativos %}
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <div>
+                                        <strong>{{ cliente.nome }}</strong><br>
+                                        <small class="text-muted">{{ cliente.email }}</small>
+                                    </div>
+                                    <span class="badge bg-primary">
+                                        {{ cliente.total_agendamentos }} agendamentos
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-3">
+                                <p>Nenhum cliente com agendamentos ainda</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Serviços Mais Procurados -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">🔥 Serviços Mais Procurados</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if servicos_populares %}
+                            {% for servico in servicos_populares %}
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <div>
+                                        <strong>{{ servico.nome }}</strong><br>
+                                        <small class="text-muted">R$ {{ servico.preco|floatformat:2 }}</small>
+                                    </div>
+                                    <span class="badge bg-info">
+                                        {{ servico.total_agendamentos }} vezes
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-3">
+                                <p>Nenhum serviço agendado ainda</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações do usuário -->
+        {% if meus_clientes or meus_agendamentos_mes %}
+        <div class="row gx-5 mb-5">
+            <div class="col-lg-12">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">📋 Seus Dados Pessoais</h6>
+                    <div class="row">
+                        {% if meus_clientes %}
+                        <div class="col-md-4">
+                            <strong>{{ meus_clientes }}</strong> clientes que você cadastrou
+                        </div>
+                        {% endif %}
+                        {% if meus_agendamentos_mes %}
+                        <div class="col-md-4">
+                            <strong>{{ meus_agendamentos_mes }}</strong> seus agendamentos este mês
+                        </div>
+                        {% endif %}
+                        {% if meus_agendamentos_hoje %}
+                        <div class="col-md-4">
+                            <strong>{{ meus_agendamentos_hoje }}</strong> seus agendamentos hoje
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+{% elif user.is_authenticated and sem_tenant %}
+    <!-- Usuário logado sem tenant -->
+    <div class="container px-5 my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="alert alert-warning text-center">
+                    <h4>⚠️ Configuração Necessária</h4>
+                    <p>Sua organização está sendo configurada automaticamente. Isso pode levar alguns instantes.</p>
+                    <p>Se o problema persistir, entre em contato com o suporte.</p>
+                    {% if erro_tenant %}
+                        <small class="text-muted">Erro técnico: {{ erro_tenant }}</small>
+                    {% endif %}
+                    <div class="mt-3">
+                        <a href="{% url 'index' %}" class="btn btn-primary">Tentar Novamente</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <!-- Conteúdo para usuários não logados -->
+    {% include "paginasweb/includes/features.html" %}
+    {% include "paginasweb/includes/cta.html" %}
+{% endif %}
+{% endblock conteudo %}

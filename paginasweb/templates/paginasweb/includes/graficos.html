@@ -1,0 +1,118 @@
+<!-- Seção de Gráficos -->
+<div class="row gx-5 mb-5">
+    <div class="col-lg-12">
+        <h3 class="fw-bolder mb-4">📊 Análise Visual</h3>
+        
+        <!-- Gráfico de Agendamentos por Status -->
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Status dos Agendamentos</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Gráfico de Tendência Semanal -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Agendamentos dos Últimos 7 Dias</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="tendenciaChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para os gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Dados do backend (você pode passar via contexto)
+const statusData = {
+    pendentes: {{ agendamentos_pendentes|default:0 }},
+    confirmados: {{ agendamentos_confirmados|default:0 }},
+    concluidos: {{ agendamentos_concluidos|default:0 }}
+};
+
+// Gráfico de Status (Doughnut)
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Pendentes', 'Confirmados', 'Concluídos'],
+        datasets: [{
+            data: [statusData.pendentes, statusData.confirmados, statusData.concluidos],
+            backgroundColor: [
+                '#ffc107', // warning
+                '#17a2b8', // info  
+                '#28a745'  // success
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        }
+    }
+});
+
+// Dados simulados para tendência (em um caso real, você passaria do backend)
+const diasSemana = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+const agendamentosPorDia = [
+    Math.floor(Math.random() * 10),
+    Math.floor(Math.random() * 10),
+    Math.floor(Math.random() * 10),
+    Math.floor(Math.random() * 10),
+    Math.floor(Math.random() * 10),
+    Math.floor(Math.random() * 10),
+    Math.floor(Math.random() * 10)
+];
+
+// Gráfico de Tendência (Line)
+const tendenciaCtx = document.getElementById('tendenciaChart').getContext('2d');
+const tendenciaChart = new Chart(tendenciaCtx, {
+    type: 'line',
+    data: {
+        labels: diasSemana,
+        datasets: [{
+            label: 'Agendamentos',
+            data: agendamentosPorDia,
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+</script>

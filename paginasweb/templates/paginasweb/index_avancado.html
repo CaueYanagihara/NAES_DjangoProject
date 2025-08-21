@@ -1,0 +1,360 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+{% load dashboard_tags %}
+
+{% block extra_css %}
+<style>
+    .counter {
+        animation: countUp 1s ease-in-out;
+    }
+    
+    @keyframes countUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .progress-animated {
+        animation: progressFill 2s ease-in-out;
+    }
+    
+    @keyframes progressFill {
+        from { width: 0%; }
+    }
+    
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+    }
+</style>
+{% endblock extra_css %}
+
+{% block header %}
+{% if user.is_authenticated %}
+    <div class="text-center">
+        <h1 class="display-5 fw-bolder mb-4">
+            <span class="text-gradient d-inline">Dashboard Dinâmico</span>
+        </h1>
+        {% if tenant %}
+            <p class="lead fw-light mb-4">{{ tenant.nome }} - Dados em tempo real</p>
+            
+            <!-- Indicadores principais -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card card-hover border-primary">
+                        <div class="card-body text-center">
+                            <h3 class="counter text-primary" data-target="{{ total_agendamentos_mes }}">0</h3>
+                            <small class="text-muted">Agendamentos este mês</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-hover border-success">
+                        <div class="card-body text-center">
+                            <h3 class="counter text-success" data-target="{{ total_clientes }}">0</h3>
+                            <small class="text-muted">Total de clientes</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-hover border-info">
+                        <div class="card-body text-center">
+                            <h3 class="counter text-info" data-target="{{ agendamentos_hoje|length }}">0</h3>
+                            <small class="text-muted">Agendamentos hoje</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-hover border-warning">
+                        <div class="card-body text-center">
+                            <h3 class="counter text-warning" data-target="{{ agendamentos_pendentes }}">0</h3>
+                            <small class="text-muted">Aguardando confirmação</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botões de ação -->
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                <a class="btn btn-primary btn-lg px-4 me-sm-3 pulse" href="{% url 'cadastrar-agendamento' %}">
+                    📅 Novo Agendamento
+                </a>
+                <a class="btn btn-outline-primary btn-lg px-4" href="{% url 'escolher-cadastro' %}">
+                    📋 Gerenciar Sistema
+                </a>
+            </div>
+        {% endif %}
+    </div>
+{% else %}
+    {% include "paginasweb/includes/hero.html" %}
+{% endif %}
+{% endblock header %}
+
+{% block conteudo %}
+{% if user.is_authenticated and tenant %}
+    <div class="container px-5 my-5">
+        
+        <!-- Métricas Avançadas -->
+        <div class="row gx-5 mb-5">
+            <div class="col-lg-12">
+                <h2 class="fw-bolder mb-4">📊 Análise Detalhada</h2>
+                
+                <!-- Crescimento mensal -->
+                {% crescimento_mensal tenant user as crescimento %}
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card border-{{ crescimento.tendencia|yesno:'success,danger,secondary' }}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Crescimento Mensal</h6>
+                                        <h3 class="text-{{ crescimento.tendencia|yesno:'success,danger,secondary' }}">
+                                            {% if crescimento.tendencia == 'positivo' %}⬆️{% elif crescimento.tendencia == 'negativo' %}⬇️{% else %}➡️{% endif %}
+                                            {{ crescimento.crescimento }}%
+                                        </h3>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">{{ crescimento.atual }} este mês</small><br>
+                                        <small class="text-muted">{{ crescimento.anterior }} mês anterior</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card border-info">
+                            <div class="card-body">
+                                <h6 class="card-title">Taxa de Conclusão</h6>
+                                {% with total=total_agendamentos_mes|add:0 %}
+                                    {% with taxa=agendamentos_concluidos|percentage:total %}
+                                        <h3 class="text-info">{{ taxa }}%</h3>
+                                        <div class="progress mt-2" style="height: 8px;">
+                                            <div class="progress-bar bg-info progress-animated" 
+                                                 style="width: {{ taxa }}%"></div>
+                                        </div>
+                                        <small class="text-muted">{{ agendamentos_concluidos }}/{{ total }} agendamentos</small>
+                                    {% endwith %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Timeline de Agendamentos -->
+        <div class="row gx-5 mb-5">
+            <div class="col-lg-12">
+                <h3 class="fw-bolder mb-4">📅 Timeline de Hoje</h3>
+                
+                {% if agendamentos_hoje %}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="timeline">
+                                {% for agendamento in agendamentos_hoje %}
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-{{ agendamento.status|yesno:'warning,info,success' }}"></div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">{{ agendamento.dataHoraInicio|time:"H:i" }} - {{ agendamento.cliente.nome }}</h6>
+                                            <p class="mb-1">{{ agendamento.servico.nome }} com {{ agendamento.atendente.nome }}</p>
+                                            <span class="badge bg-{{ agendamento.status|yesno:'warning,info,success' }}">
+                                                {{ agendamento.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-calendar-day fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhum agendamento para hoje</h5>
+                            <p class="text-muted">Que tal aproveitar para organizar a agenda?</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Top Performers -->
+        <div class="row gx-5 mb-5">
+            <div class="col-lg-6">
+                <div class="card card-hover">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">🏆 Top Clientes</h5>
+                        <span class="badge bg-primary">{{ clientes_ativos|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% top_clientes tenant user 5 as top_clientes %}
+                        {% for cliente in top_clientes %}
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                                <div>
+                                    <strong>{{ cliente.nome }}</strong><br>
+                                    <small class="text-muted">{{ cliente.email }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-success">{{ cliente.total_agendamentos }}</span><br>
+                                    <small class="text-muted">agendamentos</small>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center text-muted py-3">
+                                <p>Nenhum cliente ativo ainda</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card card-hover">
+                    <div class="card-header">
+                        <h5 class="mb-0">🔥 Serviços Populares</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for servico in servicos_populares %}
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                                <div>
+                                    <strong>{{ servico.nome }}</strong><br>
+                                    <small class="text-muted">R$ {{ servico.preco|floatformat:2 }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-info">{{ servico.total_agendamentos }}</span><br>
+                                    <small class="text-muted">vezes</small>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center text-muted py-3">
+                                <p>Nenhum serviço agendado ainda</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ações Rápidas -->
+        <div class="row gx-5 mb-5">
+            <div class="col-lg-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">⚡ Ações Rápidas</h5>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <a href="{% url 'cadastrar-agendamento' %}" class="btn btn-primary w-100">
+                                    📅 Novo Agendamento
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'cadastrar-cliente' %}" class="btn btn-success w-100">
+                                    👤 Novo Cliente
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'listar-agendamento' %}" class="btn btn-info w-100">
+                                    📋 Ver Agenda
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'perfil-usuario' %}" class="btn btn-outline-primary w-100">
+                                    ⚙️ Configurações
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+{% else %}
+    {% include "paginasweb/includes/features.html" %}
+    {% include "paginasweb/includes/cta.html" %}
+{% endif %}
+{% endblock conteudo %}
+
+{% block extra_js %}
+<script>
+// Animação dos contadores
+document.addEventListener('DOMContentLoaded', function() {
+    const counters = document.querySelectorAll('.counter');
+    
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const increment = target / 100;
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            counter.textContent = Math.floor(current);
+        }, 20);
+    });
+    
+    // Auto-refresh dos dados a cada 5 minutos (se necessário)
+    setInterval(() => {
+        // Aqui você pode fazer uma chamada AJAX para atualizar dados
+        console.log('Verificando atualizações...');
+    }, 300000); // 5 minutos
+});
+</script>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item:not(:last-child):before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 1.5rem;
+    height: calc(100% - 1rem);
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -2rem;
+    top: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 3px #dee2e6;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-left: 3px solid #007bff;
+}
+</style>
+{% endblock extra_js %}

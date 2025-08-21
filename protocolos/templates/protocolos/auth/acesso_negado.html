@@ -1,0 +1,72 @@
+{% extends "paginasweb/modelos/index.html" %}
+{% load static %}
+
+{% block header %}
+<div class="text-center">
+    <h1 class="display-6 fw-bolder mb-4">
+        <span class="text-gradient d-inline text-danger">Acesso Negado</span>
+    </h1>
+    <p class="lead fw-light mb-4">Você não tem permissão para acessar esta página</p>
+</div>
+{% endblock header %}
+
+{% block conteudo %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-shield-alt fa-5x text-danger"></i>
+                </div>
+                
+                <h3 class="mb-3">Oops! Acesso Restrito</h3>
+                
+                {% if user.is_authenticated %}
+                    <p class="text-muted mb-4">
+                        Você está logado como <strong>{{ user.username }}</strong>, mas não tem permissão 
+                        para acessar esta página ou recurso específico.
+                    </p>
+                    
+                    <div class="alert alert-info" role="alert">
+                        <h6 class="alert-heading">Possíveis motivos:</h6>
+                        <ul class="text-start mb-0">
+                            <li>Esta página é restrita a administradores</li>
+                            <li>Você não é o proprietário deste conteúdo</li>
+                            <li>Sua conta não tem as permissões necessárias</li>
+                            <li>O conteúdo não existe ou foi removido</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'index' %}" class="btn btn-primary me-3">
+                            <i class="fas fa-home"></i> Ir para Início
+                        </a>
+                        <a href="{% url 'escolher-cadastro' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list"></i> Ver Minhas Listas
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-4">
+                        Esta página requer autenticação. Faça login para continuar.
+                    </p>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'login' %}" class="btn btn-primary me-3">
+                            <i class="fas fa-sign-in-alt"></i> Fazer Login
+                        </a>
+                        <a href="{% url 'cadastrar-usuario' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus"></i> Criar Conta
+                        </a>
+                    </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <small class="text-muted">
+                        Se você acredita que isto é um erro, entre em contato com o suporte.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock conteudo %}

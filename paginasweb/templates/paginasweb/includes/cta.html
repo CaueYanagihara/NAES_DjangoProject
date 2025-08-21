@@ -1,0 +1,36 @@
+<!-- Call to action dinâmico -->
+<section class="py-5 bg-gradient-primary-to-secondary text-white">
+    <div class="container px-5 my-5">
+        <div class="text-center">
+            {% if user.is_authenticated %}
+                <!-- CTA para usuários logados -->
+                <h2 class="display-4 fw-bolder mb-4">Tudo pronto para começar!</h2>
+                <p class="fs-5 mb-4">
+                    Seu sistema está configurado. Comece agendando um novo horário ou gerenciando seus dados.
+                </p>
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a class="btn btn-outline-light btn-lg px-5 py-3" href="{% url 'cadastrar-agendamento' %}">
+                        📅 Novo Agendamento
+                    </a>
+                    <a class="btn btn-light btn-lg px-5 py-3" href="{% url 'escolher-cadastro' %}">
+                        📋 Ver Todas as Listas
+                    </a>
+                </div>
+            {% else %}
+                <!-- CTA para usuários não logados -->
+                <h2 class="display-4 fw-bolder mb-4">Pronto para começar?</h2>
+                <p class="fs-5 mb-4">
+                    Cadastre-se agora e tenha acesso completo ao sistema de agendamentos mais fácil de usar.
+                </p>
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a class="btn btn-outline-light btn-lg px-5 py-3" href="{% url 'cadastrar-usuario' %}">
+                        🚀 Criar Conta Grátis
+                    </a>
+                    <a class="btn btn-light btn-lg px-5 py-3" href="{% url 'sobre' %}">
+                        📖 Saiba Mais
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>

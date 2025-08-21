@@ -1,0 +1,28 @@
+<!-- Footer dinâmico -->
+<footer class="bg-dark py-4 mt-auto">
+    <div class="container px-5">
+        <div class="row align-items-center justify-content-between flex-column flex-sm-row">
+            <div class="col-auto">
+                <div class="small m-0 text-white">
+                    Copyright &copy; Agende Fácil 2024
+                    {% if user.is_authenticated %}
+                        | Logado como: <strong>{{ user.get_full_name|default:user.username }}</strong>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-auto">
+                {% if user.is_authenticated %}
+                    <a class="link-light small" href="{% url 'escolher-cadastro' %}">Sistema</a>
+                    <span class="text-white mx-1">&middot;</span>
+                    <a class="link-light small" href="{% url 'logout' %}">Sair</a>
+                {% else %}
+                    <a class="link-light small" href="{% url 'login' %}">Login</a>
+                    <span class="text-white mx-1">&middot;</span>
+                    <a class="link-light small" href="{% url 'cadastrar-usuario' %}">Cadastre-se</a>
+                {% endif %}
+                <span class="text-white mx-1">&middot;</span>
+                <a class="link-light small" href="{% url 'contato' %}">Contato</a>
+            </div>
+        </div>
+    </div>
+</footer>
