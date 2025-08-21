@@ -5,6 +5,7 @@ from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
+from django.utils.text import slugify
 from datetime import datetime, timedelta
 from protocolos.models import (
     Cliente, Agendamento, Empresa, Servico, StatusAgendamento, Tenant, Atendente

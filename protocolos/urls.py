@@ -69,25 +69,17 @@ urlpatterns = [
     path('agendamento/listar/', AgendamentoList.as_view(), name='listar-agendamento'),
     path('agendamento/progredir-status/<uuid:pk>/', ProgredirStatusAgendamentoView.as_view(), name='progredir-status-agendamento'),
 
-    # URLs de autenticação do Django
     # URLs de autenticação
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', views.CustomLogoutView.as_view(), name='logout'),
-    path('cadastrar-usuario/', views.CustomUserCreateView.as_view(), name='cadastrar-usuario'),
     path('acesso-negado/', views.acesso_negado, name='acesso-negado'),
     path('meu-perfil/', views.perfil_usuario, name='perfil-usuario'),
 
-    # Cadastro de usuário do sistema (autenticação) - MELHORADO COM VIEW CUSTOMIZADA
+    # Cadastro de usuário do sistema (autenticação)
     path('cadastrar-usuario/', CustomUserCreateView.as_view(), name='cadastrar-usuario'),
 
     # Cadastro de cliente da loja (entidade de negócio)
     path('cadastrar/', ClienteCreatePublico.as_view(), name='cadastrar-cliente-publico'),
-
-    # Adicionando URLs para Tenant
-    path('tenant/cadastrar/', TenantCreate.as_view(), name='cadastrar-tenant'),
-    path('tenant/editar/<uuid:pk>/', TenantUpdate.as_view(), name='editar-tenant'),
-    path('tenant/excluir/<uuid:pk>/', TenantDelete.as_view(), name='excluir-tenant'),
-    path('tenant/listar/', TenantList.as_view(), name='listar-tenant'),
 
     # Cadastro de usuários
     path('cadastro/', views.CustomUserCreateView.as_view(), name='cadastro'),

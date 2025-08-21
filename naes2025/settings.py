@@ -56,6 +56,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Middlewares personalizados (comentados para não causar problemas iniciais)
+    # 'protocolos.middleware.AuthenticationMiddleware',
+    # 'protocolos.middleware.TenantMiddleware',
 ]
 
 ROOT_URLCONF = "naes2025.urls"
@@ -138,35 +141,14 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Configurações de redirecionamento após login
 LOGIN_URL = '/protocolo/login/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Handlers de erro personalizados
 PERMISSION_DENIED_VIEW = 'protocolos.views.acesso_negado'
-
-# Configuração de middleware
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # Middlewares personalizados (comentados para não causar problemas iniciais)
-    # 'protocolos.middleware.AuthenticationMiddleware',
-    # 'protocolos.middleware.TenantMiddleware',
-]
-
-# AUTH_USER_MODEL = "protocolos.Cliente"
 
 # Configuração para usar email como username
 AUTHENTICATION_BACKENDS = [
     'protocolos.backends.EmailBackend',  # Backend customizado para email
     'django.contrib.auth.backends.ModelBackend',  # Backend padrão como fallback
 ]
-
-# Configurar login com email
-LOGIN_URL = '/protocolo/login/'
-LOGIN_REDIRECT_URL = '/home/'
-LOGOUT_REDIRECT_URL = '/'

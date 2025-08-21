@@ -600,9 +600,29 @@ def custom_logout(request):
 class CustomLoginView(LoginView):
     template_name = 'protocolos/auth/login.html'
     redirect_authenticated_user = True
-    success_url = reverse_lazy('index')
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Limpar mensagens antigas ao carregar a página de login
+        if request.method == 'GET':
+            # Limpa todas as mensagens existentes da sessão
+            storage = messages.get_messages(request)
+            for message in storage:
+                pass  # Isso consome as mensagens
+            storage.used = True
+        
+        return super().dispatch(request, *args, **kwargs)
     
     def get_success_url(self):
+        # Primeiro verifica se há um 'next' parameter na URL
+        next_url = self.get_redirect_url()
+        if next_url:
+            return next_url
+        
+        # Se não há 'next', redireciona para dashboard se o usuário estiver autenticado
+        if self.request.user.is_authenticated:
+            return reverse_lazy('dashboard')
+        
+        # Fallback para página inicial
         return reverse_lazy('index')
     
     def form_valid(self, form):
@@ -617,7 +637,7 @@ class CustomLogoutView(LogoutView):
     template_name = 'protocolos/auth/logout.html'
     
     def dispatch(self, request, *args, **kwargs):
-        messages.success(request, 'Você foi desconectado com sucesso!')
+        # Não adicionar mensagem aqui - será exibida no template de logout
         return super().dispatch(request, *args, **kwargs)
 
 # View personalizada para acesso negado

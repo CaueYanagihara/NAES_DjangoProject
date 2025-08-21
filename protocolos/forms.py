@@ -133,13 +133,32 @@ class EmpresaForm(forms.ModelForm):
     
     class Meta:
         model = Empresa
-        fields = ['nome', 'endereco', 'telefone', 'email', 'cnpj']
+        fields = ['nomeFantasia', 'cnpj', 'rua', 'numero', 'bairro', 'cidade', 'estado', 'cep', 'telefone', 'email', 'descricao']
         widgets = {
-            'nome': forms.TextInput(attrs={'class': 'form-control'}),
-            'endereco': forms.TextInput(attrs={'class': 'form-control'}),
-            'telefone': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'cnpj': forms.TextInput(attrs={'class': 'form-control'}),
+            'nomeFantasia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da empresa'}),
+            'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00'}),
+            'rua': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da rua'}),
+            'numero': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Número'}),
+            'bairro': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bairro'}),
+            'cidade': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Cidade'}),
+            'estado': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UF', 'maxlength': '2'}),
+            'cep': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00000-000'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@empresa.com'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descrição da empresa'}),
+        }
+        labels = {
+            'nomeFantasia': 'Nome da Empresa',
+            'cnpj': 'CNPJ',
+            'rua': 'Rua',
+            'numero': 'Número',
+            'bairro': 'Bairro',
+            'cidade': 'Cidade',
+            'estado': 'Estado (UF)',
+            'cep': 'CEP',
+            'telefone': 'Telefone',
+            'email': 'Email',
+            'descricao': 'Descrição',
         }
 
 class AtendenteForm(forms.ModelForm):

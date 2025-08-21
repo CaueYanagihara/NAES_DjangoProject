@@ -1,13 +1,12 @@
 from django.urls import path
 # Importar suas views
-from .views import PaginaInicial, SobreView, ContatoView, EscolherCadastroView, HomeView
-from . import views
+from .views import index, sobre, contato, escolher_cadastro, DashboardView, dashboard_data
 
 urlpatterns = [
-    path("", PaginaInicial.as_view(), name="index" ),
-    path("sobre/", SobreView.as_view(), name="sobre"),
-    path("contato/", ContatoView.as_view(), name="contato"),
-    path("escolher-cadastro/", EscolherCadastroView.as_view(), name="escolher-cadastro"),
-    path("home/", HomeView.as_view(), name="home"),
-    path('api/dashboard-data/', views.dashboard_data, name='dashboard-data'),
+    path("", index, name="index"),
+    path("sobre/", sobre, name="sobre"),
+    path("contato/", contato, name="contato"),
+    path("escolher-cadastro/", escolher_cadastro, name="escolher-cadastro"),
+    path("dashboard/", DashboardView.as_view(), name="dashboard"),
+    path('api/dashboard-data/', dashboard_data, name='dashboard-data'),
 ]
