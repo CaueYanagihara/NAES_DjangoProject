@@ -635,10 +635,17 @@ class CustomLoginView(LoginView):
 
 class CustomLogoutView(LogoutView):
     template_name = 'protocolos/auth/logout.html'
+    http_method_names = ['get', 'post']  # Permitir GET e POST
     
-    def dispatch(self, request, *args, **kwargs):
-        # Não adicionar mensagem aqui - será exibida no template de logout
-        return super().dispatch(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        """Handle GET request - perform logout and show template"""
+        logout(request)
+        return self.render_to_response(self.get_context_data())
+    
+    def post(self, request, *args, **kwargs):
+        """Handle POST request - perform logout and show template"""
+        logout(request)
+        return self.render_to_response(self.get_context_data())
 
 # View personalizada para acesso negado
 def acesso_negado(request):

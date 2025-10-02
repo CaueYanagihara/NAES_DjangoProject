@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
 
+    # Debug Toolbar
+    "debug_toolbar",
+
 ]
 
 MIDDLEWARE = [
@@ -59,6 +62,9 @@ MIDDLEWARE = [
     # Middlewares personalizados (comentados para não causar problemas iniciais)
     # 'protocolos.middleware.AuthenticationMiddleware',
     # 'protocolos.middleware.TenantMiddleware',
+
+    # Debug Toolbar Middleware (deve ficar logo após SessionMiddleware)
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "naes2025.urls"
@@ -151,4 +157,10 @@ PERMISSION_DENIED_VIEW = 'protocolos.views.acesso_negado'
 AUTHENTICATION_BACKENDS = [
     'protocolos.backends.EmailBackend',  # Backend customizado para email
     'django.contrib.auth.backends.ModelBackend',  # Backend padrão como fallback
+]
+
+# Configuração do Django Debug Toolbar
+INTERNAL_IPS = [
+    "127.0.0.1",
+    "localhost",
 ]
